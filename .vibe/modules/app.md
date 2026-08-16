@@ -1,5 +1,5 @@
 # Module: app
-**Role:** Application entry point — mounts the app into the DOM.
-**Files:** `src/main.ts`, `src/version.ts`
-**Exports:** `appVersion: string`
-**Depends on:** (none yet)
+**Role:** Application entry point — mounts the root frame into the DOM, built on the shared `web-ui-kit` design system, with a fallback error state if the design tokens stylesheet fails to load.
+**Files:** `src/main.ts`, `src/style.css`, `src/version.ts`
+**Exports:** `appVersion: string`, `renderApp(root, version, options?)`, `designTokensLoaded(target?): boolean`, `RenderAppOptions`
+**Depends on:** `@openkakutou/web-ui-kit` (external)

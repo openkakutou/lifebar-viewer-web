@@ -3,7 +3,9 @@
 A static web page to visualize and preview a [OpenKakutou](https://github.com/openkakutou) (MUGEN/Ikemen GO-compatible) lifebar: the health bar, power bar, combo counter, and round display UI a match uses, so a lifebar's construction can be checked without running a real match. It parses the lifebar `.def`-style format directly in this app, and decodes referenced sprite sheets via the [`sff`](https://github.com/openkakutou/sff) WebAssembly module.
 
 <!-- vibe:begin:features -->
-This project is in early-stage development — only the project scaffold exists so far, no functionality yet.
+This project is in early-stage development. Available now:
+
+- A styled app shell using the shared OpenKakutou design system, so every screen built from here on looks and behaves consistently with the org's other viewer/editor apps. If the app's visual styling fails to load, a clear error message is shown instead of a blank page.
 
 Planned:
 

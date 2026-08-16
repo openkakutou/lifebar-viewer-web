@@ -1,0 +1,15 @@
+/*
+ * App-level typography for the root frame's toolbar title. Every value is
+ * a `web-ui-kit` design token — nothing hardcoded — so this stays correct
+ * across both themes with no maintenance here (see backlog item 001,
+ * .vibe/decisions/001-web-ui-kit-scaffold-adoption-and-token-failure-detection.md).
+ *
+ * The `.design-tokens-error` fallback deliberately has NO rules here: it
+ * renders exactly when this stylesheet itself failed to load, so it must
+ * stay visible using only the browser's own default styling.
+ */
+
+.app-title {
+  font-size: var(--wuik-font-size-lg);
+  font-weight: var(--wuik-font-weight-bold);
+}
