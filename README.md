@@ -6,10 +6,10 @@ A static web page to visualize and preview a [OpenKakutou](https://github.com/op
 This project is in early-stage development. Available now:
 
 - A styled app shell using the shared OpenKakutou design system, so every screen built from here on looks and behaves consistently with the org's other viewer/editor apps. If the app's visual styling fails to load, a clear error message is shown instead of a blank page.
+- Load a lifebar by selecting or dropping the folder it's distributed in — MUGEN and Ikemen GO `.def`-style files are both supported. If the folder has exactly one lifebar file it loads automatically; if it has several, you're asked which one to load. A malformed file shows a clear error, and any section this app doesn't yet recognize is skipped with a warning instead of blocking the load.
 
 Planned:
 
-- Parse a lifebar's `.def`-style format, MUGEN and Ikemen GO compatible
 - Decode the sprite sheets a lifebar references via the `sff` WebAssembly build
 - An elements panel listing every configured element (life bar, power bar, combo counter, round display, etc.)
 - A live visual preview renderer using resolved sprites
@@ -69,5 +69,6 @@ npm run lint
 <!-- vibe:end:usage -->
 
 <!-- vibe:begin:docs-index -->
-No additional documentation yet.
+- [docs/architecture.md](docs/architecture.md) — the app's modules and how loading a lifebar flows through them
+- [docs/testing.md](docs/testing.md) — how the test suite is organized and run
 <!-- vibe:end:docs-index -->

@@ -13,3 +13,71 @@
   font-size: var(--wuik-font-size-lg);
   font-weight: var(--wuik-font-weight-bold);
 }
+
+/*
+ * Lifebar folder input (backlog item 002) — folder selection is the only
+ * input path, see
+ * .vibe/decisions/002-folder-only-input-and-warn-on-unrecognized-sections.md.
+ * Error text uses `--wuik-color-text`, not `--wuik-color-danger` — mirrors
+ * the org-wide convention (`web-ui-kit`'s own
+ * .vibe/decisions/009-error-text-uses-text-token-not-danger.md); the
+ * invalid state still signals non-verbally via a danger-colored border.
+ */
+.lifebar-folder-input {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wuik-space-4);
+  padding: var(--wuik-space-4);
+}
+
+.lifebar-folder-input__dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--wuik-space-2);
+  padding: var(--wuik-space-4);
+  border: 2px dashed var(--wuik-color-border);
+  border-radius: var(--wuik-space-2);
+}
+
+.lifebar-folder-input__dropzone--dragging {
+  border-color: var(--wuik-color-accent);
+  background-color: var(--wuik-color-surface);
+}
+
+.lifebar-folder-input__dropzone--loading {
+  opacity: 0.6;
+}
+
+.lifebar-folder-input__label {
+  font-weight: var(--wuik-font-weight-medium);
+}
+
+.lifebar-folder-input__hint {
+  margin: 0;
+  font-size: var(--wuik-font-size-sm);
+  color: var(--wuik-color-text-secondary);
+}
+
+.lifebar-folder-input__selection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--wuik-space-2);
+}
+
+.lifebar-folder-input__status {
+  min-height: 1.2em;
+  font-size: var(--wuik-font-size-sm);
+  color: var(--wuik-color-text-secondary);
+}
+
+.lifebar-folder-input__status--error {
+  padding-left: var(--wuik-space-2);
+  color: var(--wuik-color-text);
+  border-left: 3px solid var(--wuik-color-danger);
+}
+
+.lifebar-folder-input__reset {
+  align-self: flex-start;
+}

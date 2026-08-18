@@ -1,0 +1,5 @@
+# Module: input
+**Role:** Folder-based lifebar input — gathers files from a directory picker or a dropped folder, detects which is a plausible lifebar file, resolves which one to load (auto if there's exactly one, asks the user if several), reads and parses it, and renders the picker/drop-zone/selection-prompt/status UI.
+**Files:** `src/input/folder-entries.ts`, `src/input/candidate-files.ts`, `src/input/lifebar-folder-input.ts`, `src/input/lifebar-folder-input-view.ts`
+**Exports:** `GatheredFile`, `filesFromWebkitDirectoryFiles(files)`, `filesFromDataTransferItems(items)`, `collectFilesFromEntry(entry)`, `EntryLike`/`FileEntryLike`/`DirectoryEntryLike`/`DirectoryReaderLike`/`DataTransferItemLike`, `isCandidateLifebarFile(gathered)`, `findCandidateLifebarFiles(files)`, `resolveCandidates(files)`, `CandidateResolution`, `loadLifebarFromFolderFiles(files, options?)`, `loadLifebarFromChosenEntry(entry, options?)`, `LifebarFolderInputResult`, `LifebarFolderInputOptions`, `readFileAsText(file)`, `renderLifebarFolderInput(root, options)`, `LifebarFolderInputViewOptions`
+**Depends on:** `modules/lifebar.md`

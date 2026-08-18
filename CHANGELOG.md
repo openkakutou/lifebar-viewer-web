@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Users can now load a lifebar by selecting or dropping the folder it's distributed in. If the folder contains exactly one lifebar file, it loads automatically; if it contains several, you're asked which one to load. Both MUGEN and Ikemen GO lifebar files are supported, malformed files show a clear error, and any section this app doesn't yet recognize is skipped with a warning instead of blocking the load.
+
 ## [0.2.0] - 2026-08-16
 
 ### Added

@@ -1,6 +1,8 @@
 import "@openkakutou/web-ui-kit/tokens.css";
 import "@openkakutou/web-ui-kit";
 import "./style.css";
+import { setLifebarDocument } from "./document/lifebar-document-store.ts";
+import { renderLifebarFolderInput } from "./input/lifebar-folder-input-view.ts";
 import { appVersion } from "./version.ts";
 
 const APP_TITLE = "Lifebar Viewer";
@@ -71,7 +73,13 @@ export function renderApp(
   toolbar.appendChild(title);
   shell.appendChild(toolbar);
 
-  shell.appendChild(document.createElement("main"));
+  const main = document.createElement("main");
+  shell.appendChild(main);
+  renderLifebarFolderInput(main, {
+    onLoaded: ({ document: parsedDocument, fileName, warnings }) => {
+      setLifebarDocument({ fileName, document: parsedDocument, warnings });
+    },
+  });
 
   root.appendChild(shell);
 }
