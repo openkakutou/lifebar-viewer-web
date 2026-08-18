@@ -1,7 +1,7 @@
 {
   "name": "lifebar-viewer-web",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Static web viewer for OpenKakutou MUGEN/Ikemen GO lifebars — health/power bar UI, combo counter, round display, with live value simulation.",
   "type": "module",
   "engines": {
