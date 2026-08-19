@@ -7,10 +7,10 @@ This project is in early-stage development. Available now:
 
 - A styled app shell using the shared OpenKakutou design system, so every screen built from here on looks and behaves consistently with the org's other viewer/editor apps. If the app's visual styling fails to load, a clear error message is shown instead of a blank page.
 - Load a lifebar by selecting or dropping the folder it's distributed in — MUGEN and Ikemen GO `.def`-style files are both supported. If the folder has exactly one lifebar file it loads automatically; if it has several, you're asked which one to load. A malformed file shows a clear error, and any section this app doesn't yet recognize is skipped with a warning instead of blocking the load.
+- The sprite sheet a loaded lifebar references is decoded automatically from the same folder, no extra step needed. A missing sprite sheet build or a corrupt sprite sheet shows a clear message without blocking the lifebar itself from loading.
 
 Planned:
 
-- Decode the sprite sheets a lifebar references via the `sff` WebAssembly build
 - An elements panel listing every configured element (life bar, power bar, combo counter, round display, etc.)
 - A live visual preview renderer using resolved sprites
 - Live value simulation controls (sliders) to preview life/power/combo values without a real match running
@@ -33,6 +33,12 @@ To update dependencies to their latest allowed versions:
 
 ```sh
 npm update
+```
+
+Download a specific version of the `sff` library's WebAssembly build (needed to decode a lifebar's sprite sheet):
+
+```sh
+npm run wasm:download -- v0.2.0
 ```
 <!-- vibe:end:install -->
 

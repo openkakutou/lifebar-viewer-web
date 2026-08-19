@@ -31,12 +31,24 @@ interface it actually calls (`EntryLike`, `DirectoryReaderLike`), so
 `folder-entries.test.ts` builds plain mock objects matching that shape
 instead of needing jsdom to implement the real thing.
 
+## The WASM bridge is tested against a real, downloaded build
+
+`src/wasm/bridge.test.ts` doesn't mock the `sff` WASM module — it fetches
+the real `wasm_exec.js`/`sff.wasm` from `public/wasm/` (via injected
+Node-`fs` reads, since there's no running dev server under jsdom) and
+decodes a real fixture file (`src/wasm/testdata/v1-basic.sff`, copied from
+`sff`'s own test data). Run `npm run wasm:download -- <version>` before
+running the suite, or these tests fail on a missing file rather than
+silently skip.
+
 ## jsdom gaps worked around in tests
 
 The project's pinned `jsdom` version's `Blob` implementation is
 incomplete. `src/input/lifebar-folder-input.ts` reads `File` contents via
-`FileReader#readAsText` instead of `Blob#text()`, which behaves
-identically under jsdom and in a real browser.
+`FileReader#readAsText`, and `src/input/sprite-sheet-folder-input.ts` via
+`FileReader#readAsArrayBuffer` — neither uses `Blob#text()`/`#arrayBuffer()`,
+both of which behave identically under jsdom and in a real browser via
+`FileReader` instead.
 
 A drop event's `dataTransfer` is stubbed with `Object.defineProperty` in
 `lifebar-folder-input-view.test.ts` rather than built through jsdom's own
@@ -50,20 +62,27 @@ the selection from a `"click"` listener instead, the same workaround
 
 ## Testable-by-construction patterns
 
-Both the read effect (`LifebarFolderInputOptions.readFileText`) and the
-drag-and-drop entry-walking effect are the real implementations by
-default, overridable in tests — used to exercise the read-error path
-without an actual unreadable `File`, and to simulate a dropped folder's
-contents without a real browser drag gesture.
+The read effect (`LifebarFolderInputOptions.readFileText`,
+`SpriteSheetFolderInputOptions.readFileBytes`), the drag-and-drop
+entry-walking effect, and the sprite sheet's own WASM-loading effect
+(`SpriteSheetFolderInputOptions.loadSpriteSheet`) are the real
+implementations by default, overridable in tests — used to exercise the
+read-error/setup-error/parse-error paths without an actual unreadable
+`File`, a missing WASM build, or a real corrupt `.sff` file, and to
+simulate a dropped folder's contents without a real browser drag gesture.
 
 ## Beyond the test suite: real-browser verification
 
 Passing tests are not treated as proof the folder input works. It was
 additionally driven against a real headless Chrome (dev server + a
-scripted CDP session) during development — the idle state's wording and
+scripted CDP session) during development, the sprite sheet resolution
+against the *real* downloaded WASM build — the idle state's wording and
 `webkitdirectory` attribute, a drop that yields no files (the
 unsupported-browser message), a drop with one well-formed lifebar file
-(success message naming the file and section count), and a drop with a
-malformed file (parse-error message naming the file) — with zero console
-errors across all four. This isn't part of `npm test`; it's a manual
-verification step, not a CI gate.
+plus a real `.sff` fixture (success message naming both the lifebar and
+the sprite sheet, with the correct decoded group count), a drop with only
+the lifebar file (the "no sprite sheet found" message, not treated as an
+error), and a drop with a malformed sprite sheet alongside a well-formed
+lifebar (the lifebar still loads; the sprite sheet parse-error names the
+right file) — with zero console errors across all cases. This isn't part
+of `npm test`; it's a manual verification step, not a CI gate.

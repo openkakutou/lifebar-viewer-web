@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { findCandidateLifebarFiles } from "./candidate-files.ts";
+import {
+  findCandidateLifebarFiles,
+  findCandidateSpriteSheetFiles,
+} from "./candidate-files.ts";
 import type { GatheredFile } from "./folder-entries.ts";
 
 function entry(relativePath: string): GatheredFile {
@@ -42,5 +45,41 @@ describe("findCandidateLifebarFiles", () => {
 
   it("returns an empty list for an empty input", () => {
     expect(findCandidateLifebarFiles([])).toEqual([]);
+  });
+});
+
+describe("findCandidateSpriteSheetFiles", () => {
+  it("keeps only files with a .sff extension", () => {
+    const files = [
+      entry("pack/fight.def"),
+      entry("pack/font.fnt"),
+      entry("pack/p1.sff"),
+    ];
+
+    expect(findCandidateSpriteSheetFiles(files)).toEqual([files[2]]);
+  });
+
+  it("matches the extension case-insensitively", () => {
+    const files = [entry("pack/P1.SFF")];
+
+    expect(findCandidateSpriteSheetFiles(files)).toEqual(files);
+  });
+
+  it("finds multiple candidates across nested folders", () => {
+    const files = [
+      entry("pack/p1.sff"),
+      entry("pack/alt/p2.sff"),
+      entry("pack/font.fnt"),
+    ];
+
+    expect(findCandidateSpriteSheetFiles(files)).toEqual([files[0], files[1]]);
+  });
+
+  it("returns an empty list when no file matches", () => {
+    expect(findCandidateSpriteSheetFiles([entry("pack/font.fnt")])).toEqual([]);
+  });
+
+  it("returns an empty list for an empty input", () => {
+    expect(findCandidateSpriteSheetFiles([])).toEqual([]);
   });
 });

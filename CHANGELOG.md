@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The sprite sheet a loaded lifebar references is now decoded automatically from the same folder — no separate upload step. Its decoded sprites are available for the elements panel to display. A missing sprite sheet WASM build or a corrupt sprite sheet shows a clear message instead of failing silently, without blocking the lifebar itself from loading.
+
 ## [0.3.0] - 2026-08-18
 
 ### Added

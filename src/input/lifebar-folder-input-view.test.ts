@@ -232,6 +232,110 @@ describe("renderLifebarFolderInput", () => {
     );
   });
 
+  it("resolves and reports the sole sprite sheet found in the same folder", async () => {
+    const onSpriteSheetResolved = vi.fn();
+    const root = document.createElement("div");
+    renderLifebarFolderInput(root, {
+      onLoaded: vi.fn(),
+      onSpriteSheetResolved,
+      fileOptions: { readFileText: async () => "[Files]\nfont1 = font.def" },
+      spriteSheetOptions: {
+        readFileBytes: async () => new Uint8Array([1, 2, 3]),
+        loadSpriteSheet: async () => ({
+          ok: true,
+          spriteGroups: [{ index: 0, sprites: [] }],
+        }),
+      },
+    });
+
+    await selectViaPicker(root, [
+      withRelativePath(makeFile("fight.def"), "pack/fight.def"),
+      withRelativePath(makeFile("p1.sff"), "pack/p1.sff"),
+    ]);
+    await vi.waitFor(() => {
+      expect(onSpriteSheetResolved).toHaveBeenCalled();
+    });
+
+    expect(onSpriteSheetResolved).toHaveBeenCalledWith({
+      status: "success",
+      fileName: "p1.sff",
+      relativePath: "pack/p1.sff",
+      sffBytes: new Uint8Array([1, 2, 3]),
+      spriteGroups: [{ index: 0, sprites: [] }],
+    });
+    expect(status(root).textContent).toContain("p1.sff");
+    expect(status(root).textContent).toContain("1 group");
+  });
+
+  it("reports no sprite sheet found without treating it as an error", async () => {
+    const root = document.createElement("div");
+    renderLifebarFolderInput(root, {
+      onLoaded: vi.fn(),
+      fileOptions: { readFileText: async () => "[Files]\nfont1 = font.def" },
+    });
+
+    await selectViaPicker(root, [
+      withRelativePath(makeFile("fight.def"), "pack/fight.def"),
+    ]);
+    await vi.waitFor(() => {
+      expect(status(root).textContent?.toLowerCase()).toContain(
+        "no sprite sheet",
+      );
+    });
+
+    expect(
+      status(root).classList.contains("lifebar-folder-input__status--error"),
+    ).toBe(false);
+  });
+
+  it("reports multiple sprite sheets found without picking one or blocking the lifebar load", async () => {
+    const onLoaded = vi.fn();
+    const root = document.createElement("div");
+    renderLifebarFolderInput(root, {
+      onLoaded,
+      fileOptions: { readFileText: async () => "[Files]\nfont1 = font.def" },
+    });
+
+    await selectViaPicker(root, [
+      withRelativePath(makeFile("fight.def"), "pack/fight.def"),
+      withRelativePath(makeFile("p1.sff"), "pack/p1.sff"),
+      withRelativePath(makeFile("p2.sff"), "pack/p2.sff"),
+    ]);
+
+    expect(onLoaded).toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(status(root).textContent?.toLowerCase()).toContain("multiple");
+    });
+  });
+
+  it("shows a distinct, clearly-flagged error when the sprite sheet fails to parse", async () => {
+    const root = document.createElement("div");
+    renderLifebarFolderInput(root, {
+      onLoaded: vi.fn(),
+      fileOptions: { readFileText: async () => "[Files]\nfont1 = font.def" },
+      spriteSheetOptions: {
+        readFileBytes: async () => new Uint8Array([1]),
+        loadSpriteSheet: async () => ({
+          ok: false,
+          error: "sff: not a .sff file: unexpected signature",
+        }),
+      },
+    });
+
+    await selectViaPicker(root, [
+      withRelativePath(makeFile("fight.def"), "pack/fight.def"),
+      withRelativePath(makeFile("p1.sff"), "pack/p1.sff"),
+    ]);
+    await vi.waitFor(() => {
+      expect(status(root).textContent).toContain("p1.sff");
+    });
+
+    expect(status(root).textContent?.toLowerCase()).toContain("parse");
+    expect(
+      status(root).classList.contains("lifebar-folder-input__status--error"),
+    ).toBe(true);
+  });
+
   it("always offers a way to choose a different folder once a result is shown", async () => {
     const root = document.createElement("div");
     renderLifebarFolderInput(root, {

@@ -19,6 +19,11 @@ import {
   loadLifebarFromChosenEntry,
   loadLifebarFromFolderFiles,
 } from "./lifebar-folder-input.ts";
+import {
+  type SpriteSheetFolderInputOptions,
+  type SpriteSheetFolderResult,
+  loadSpriteSheetFromFolderFiles,
+} from "./sprite-sheet-folder-input.ts";
 
 export interface LifebarFolderInputViewOptions {
   /** Called once a folder's lifebar file has been read and parsed successfully. */
@@ -29,6 +34,10 @@ export interface LifebarFolderInputViewOptions {
   }) => void;
   /** Forwarded to the read/parse layer; injectable for testing. */
   fileOptions?: LifebarFolderInputOptions;
+  /** Called once the lifebar's sprite sheet has been resolved from the same folder (success, none/multiple found, or an error). */
+  onSpriteSheetResolved?: (result: SpriteSheetFolderResult) => void;
+  /** Forwarded to the sprite-sheet resolution layer; injectable for testing. */
+  spriteSheetOptions?: SpriteSheetFolderInputOptions;
 }
 
 type Phase = "idle" | "loading" | "needs-selection" | "done";
@@ -46,6 +55,34 @@ function formatSuccessMessage(
     message += `, ${warnings.length} unrecognized ${warningWord} skipped`;
   }
   return `${message}.`;
+}
+
+function formatSpriteSheetMessage(result: SpriteSheetFolderResult): string {
+  switch (result.status) {
+    case "success": {
+      const groupCount = result.spriteGroups.length;
+      const groupWord = groupCount === 1 ? "group" : "groups";
+      return `Sprite sheet: ${result.fileName} (${groupCount} ${groupWord}).`;
+    }
+    case "none-found":
+      return "No sprite sheet found in this folder.";
+    case "multiple-found":
+      return `Multiple sprite sheets found (${result.candidates.length}) — not resolved.`;
+    case "read-error":
+      return `Could not read sprite sheet ${result.fileName}: ${result.message}.`;
+    case "setup-error":
+      return `The sff WASM build isn't available (${result.message}). Run "npm run wasm:download -- <version>" to fetch it.`;
+    case "parse-error":
+      return `Could not parse sprite sheet ${result.fileName}: ${result.message}.`;
+  }
+}
+
+function isSpriteSheetError(result: SpriteSheetFolderResult): boolean {
+  return (
+    result.status === "read-error" ||
+    result.status === "setup-error" ||
+    result.status === "parse-error"
+  );
 }
 
 function formatErrorMessage(
@@ -84,6 +121,7 @@ export function renderLifebarFolderInput(
   let isError = false;
   let lastSource: "picker" | "drop" = "picker";
   let selectedIndex: number | null = null;
+  let lastGatheredFiles: GatheredFile[] = [];
 
   const panel = document.createElement("div");
   panel.className = "lifebar-folder-input";
@@ -222,6 +260,15 @@ export function renderLifebarFolderInput(
         fileName: result.fileName,
         warnings: result.warnings,
       });
+
+      const spriteSheetResult = await loadSpriteSheetFromFolderFiles(
+        lastGatheredFiles,
+        options.spriteSheetOptions,
+      );
+      statusMessage = `${statusMessage} ${formatSpriteSheetMessage(spriteSheetResult)}`;
+      isError = isSpriteSheetError(spriteSheetResult);
+      render();
+      options.onSpriteSheetResolved?.(spriteSheetResult);
       return;
     }
 
@@ -245,6 +292,7 @@ export function renderLifebarFolderInput(
     source: "picker" | "drop",
   ): void {
     lastSource = source;
+    lastGatheredFiles = files;
     phase = "loading";
     statusMessage = "Reading…";
     isError = false;

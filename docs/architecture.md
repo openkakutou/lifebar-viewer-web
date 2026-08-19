@@ -8,32 +8,41 @@
 flowchart TD
     view["input/lifebar-folder-input-view.ts\n(folder picker + drop zone UI)"]
     entries["input/folder-entries.ts\n(gather files: webkitdirectory / drag-drop walk)"]
-    candidates["input/candidate-files.ts\n(filter to .def files)"]
+    candidates["input/candidate-files.ts\n(filter to .def / .sff files)"]
     orchestration["input/lifebar-folder-input.ts\n(resolve candidate, read, parse)"]
+    sheetOrchestration["input/sprite-sheet-folder-input.ts\n(resolve candidate, read, decode)"]
     parse["lifebar/parse.ts\n(parseLifebar)"]
     known["lifebar/known-sections.ts\n(recognized section names)"]
     document["lifebar/document.ts\n(data model)"]
     store["document/lifebar-document-store.ts\n(in-memory loaded document)"]
+    sheetStore["document/sff-sprite-sheet-store.ts\n(in-memory sprite sheet)"]
+    wasm["wasm/bridge.ts\n(sff WASM bridge)"]
     main["main.ts\n(app shell)"]
 
     main --> view
     view --> entries
     view --> orchestration
+    view --> sheetOrchestration
     orchestration --> candidates
+    sheetOrchestration --> candidates
     candidates --> entries
     orchestration --> parse
     parse --> known
     parse --> document
+    sheetOrchestration --> wasm
     view --> store
+    view --> sheetStore
 ```
 
 - `main.ts` mounts the `web-ui-kit` app shell and, into its `<main>` region, the folder input view.
-- `input/lifebar-folder-input-view.ts` renders the folder picker (`<input webkitdirectory>` + a drag-and-drop zone), the multi-candidate selection prompt, and the status region. It is the only module that touches the DOM.
+- `input/lifebar-folder-input-view.ts` renders the folder picker (`<input webkitdirectory>` + a drag-and-drop zone), the multi-candidate selection prompt, and the status region. It is the only module that touches the DOM. Once the lifebar itself loads, it also resolves the sprite sheet from the same gathered folder listing — see "Data flow: resolving the sprite sheet" below.
 - `input/folder-entries.ts` gathers `File`s (with a path relative to the selected folder) from either input path: a flat `FileList` from the directory picker, or a recursive `FileSystemEntry` walk for a dropped folder.
-- `input/candidate-files.ts` filters gathered files down to plausible lifebar files, by `.def` extension.
+- `input/candidate-files.ts` filters gathered files down to plausible lifebar files (`.def`) or sprite sheets (`.sff`), by extension.
 - `input/lifebar-folder-input.ts` is the pure orchestration layer: decide what to do with the gathered files (auto-load the sole candidate, ask the user among several, or report no-files/no-candidate), then read and parse the chosen one.
+- `input/sprite-sheet-folder-input.ts` is the sprite sheet equivalent: filter the same gathered files to `.sff` candidates, then read and decode the sole one via `wasm/bridge.ts` — see `.vibe/decisions/003-sprite-sheet-resolved-from-the-same-folder-no-separate-picker.md` for why this reuses the lifebar's own folder listing instead of a second picker.
+- `wasm/bridge.ts` (with `wasm/types.ts`) is the bridge to the sibling `sff` library's WebAssembly build: loads `wasm_exec.js` + `sff.wasm` (downloaded via `scripts/download-wasm.mjs`, `npm run wasm:download`, never committed) and exposes typed `loadSpriteSheet`/`resolveSpritePixels` wrappers.
 - `lifebar/parse.ts` parses `.def`-style text into a `LifebarDocument`, using `lifebar/known-sections.ts` to decide which sections are modeled versus reported as a skip warning. `lifebar/document.ts` defines the data model.
-- `document/lifebar-document-store.ts` holds the currently loaded document in memory for a later screen (the elements panel) to read from.
+- `document/lifebar-document-store.ts` holds the currently loaded lifebar document in memory; `document/sff-sprite-sheet-store.ts` holds the currently resolved sprite sheet (file name, raw bytes, decoded metadata) — both for a later screen (the elements panel) to read from.
 
 ## Data flow: loading a lifebar
 
@@ -68,4 +77,37 @@ sequenceDiagram
 ```
 
 Every step above is a plain function call — nothing here is async infrastructure (no worker, no network). The only genuinely asynchronous parts are reading a `File`'s contents (`FileReader`) and, on the drag-and-drop path, walking a dropped directory's entries (`FileSystemDirectoryReader.readEntries`, which the spec requires calling repeatedly until it returns empty).
+
+## Data flow: resolving the sprite sheet
+
+```mermaid
+sequenceDiagram
+    participant View as lifebar-folder-input-view.ts
+    participant SheetOrchestration as sprite-sheet-folder-input.ts
+    participant Bridge as wasm/bridge.ts
+    participant SheetStore as sff-sprite-sheet-store.ts
+
+    Note over View: only runs after the lifebar itself loaded successfully
+    View->>SheetOrchestration: loadSpriteSheetFromFolderFiles(same gathered files)
+    SheetOrchestration->>SheetOrchestration: filter to .sff candidates
+    alt exactly one candidate
+        SheetOrchestration->>Bridge: loadSpriteSheet(bytes)
+        alt WASM module fails to start
+            Bridge-->>SheetOrchestration: throws
+            SheetOrchestration-->>View: setup-error
+        else module reports a bad file
+            Bridge-->>SheetOrchestration: {ok: false, error}
+            SheetOrchestration-->>View: parse-error
+        else success
+            Bridge-->>SheetOrchestration: {ok: true, spriteGroups}
+            SheetOrchestration-->>View: success
+            View->>SheetStore: setSffSpriteSheet(...)
+        end
+    else zero or several candidates
+        SheetOrchestration-->>View: none-found / multiple-found
+        Note over View: appended to the status text, not treated as an error
+    end
+```
+
+Deliberately reuses the lifebar's own already-gathered folder listing rather than a second file picker — see `.vibe/decisions/003-sprite-sheet-resolved-from-the-same-folder-no-separate-picker.md`. Unlike the lifebar's own multi-candidate flow, several `.sff` candidates do not prompt the user to pick one; the sheet simply stays unresolved and the status text says so.
 

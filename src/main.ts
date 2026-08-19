@@ -2,6 +2,7 @@ import "@openkakutou/web-ui-kit/tokens.css";
 import "@openkakutou/web-ui-kit";
 import "./style.css";
 import { setLifebarDocument } from "./document/lifebar-document-store.ts";
+import { setSffSpriteSheet } from "./document/sff-sprite-sheet-store.ts";
 import { renderLifebarFolderInput } from "./input/lifebar-folder-input-view.ts";
 import { appVersion } from "./version.ts";
 
@@ -37,10 +38,12 @@ export interface RenderAppOptions {
 
 /**
  * Builds the app's root frame — a `web-ui-kit` `<wuik-app-shell>` with the
- * app title (plus version) in the toolbar and an empty `<main>` landmark
- * for future content (backlog items 002+). No sidebar content is slotted
- * yet: this is a scaffold-only adoption, no other screen exists in this
- * repo yet to navigate to — see
+ * app title (plus version) in the toolbar and the lifebar folder input as
+ * `<main>` content. Once a lifebar loads, its sprite sheet (item 003) is
+ * auto-resolved from the same folder — see
+ * .vibe/decisions/003-sprite-sheet-resolved-from-the-same-folder-no-separate-picker.md.
+ * No sidebar content is slotted yet: no other screen exists in this repo
+ * yet to navigate to — see
  * .vibe/decisions/001-web-ui-kit-scaffold-adoption-and-token-failure-detection.md.
  *
  * If the design tokens stylesheet failed to load at runtime, the shell is
@@ -78,6 +81,17 @@ export function renderApp(
   renderLifebarFolderInput(main, {
     onLoaded: ({ document: parsedDocument, fileName, warnings }) => {
       setLifebarDocument({ fileName, document: parsedDocument, warnings });
+    },
+    onSpriteSheetResolved: (result) => {
+      if (result.status === "success") {
+        setSffSpriteSheet({
+          fileName: result.fileName,
+          sffBytes: result.sffBytes,
+          spriteGroups: result.spriteGroups,
+        });
+      } else {
+        setSffSpriteSheet(null);
+      }
     },
   });
 
