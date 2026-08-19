@@ -30,16 +30,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Must run before Test and Build: the WASM bridge test suite (and
+      # the sprite sheet decoding it exercises) loads public/wasm/wasm_exec.js
+      # directly, the same way the app itself does at runtime — see
+      # src/wasm/bridge.test.ts. public/wasm/ is gitignored (downloaded,
+      # never committed), so CI must fetch it itself.
+      #
+      # Pinned to an exact sff release. Bumped by hand as sff publishes new
+      # releases, per roadmap's
+      # .vibe/decisions/016-wasm-version-pinning-push-based-propagation.md.
+      - name: Download sff WASM release
+        run: npm run wasm:download -- v0.2.0
+
       - name: Test
         run: npm test
 
       - name: Lint
         run: npx biome check .
-
-      # TODO(backlog item 007): once this repo has a `wasm:download`-
-      # equivalent script for `sff` (see items 002/003), add a step here,
-      # mirroring character-viewer-web's equivalent step. Until then this
-      # deploys whatever the app currently is.
 
       - name: Build
         run: npm run build

@@ -16,30 +16,33 @@ English — all documentation, backlog items, code comments, and other generated
 
 ## Lifebar parsing lives here, sprite decoding does not <!-- keep -->
 
-This app owns its own lifebar `.def`-style parser (element positions, fonts, sprite references) — there is deliberately no separate `lifebar` library repo, per the org roadmap's `.vibe/decisions/009`. Sprite sheets referenced by lifebar elements are decoded by the `sff` Go library (github.com/openkakutou/sff), consumed here as a WebAssembly module loaded client-side — no Go toolchain, no server, keeping this project a static site, the same pattern `character-viewer-web` uses for its `character` WASM dependency. `public/wasm/` stays gitignored: the artifact is downloaded/built, never committed.
+This app owns its own lifebar `.def`-style parser (element positions, fonts, sprite references) — there is deliberately no separate `lifebar` library repo, per the org roadmap's `.vibe/decisions/009`. Sprite sheets referenced by lifebar elements are decoded by the `sff` Go library (github.com/openkakutou/sff), consumed here as a WebAssembly module loaded client-side — no Go toolchain, no server, keeping this project a static site, the same pattern `character-viewer-web` uses for its `character` WASM dependency. `public/wasm/` stays gitignored: the artifact is downloaded, never committed. Run `npm run wasm:download -- <version>` (e.g. `npm run wasm:download -- v0.2.0`) to fetch a specific `sff` version tag's release assets straight into `public/wasm/`.
+
+**The current pin lives in exactly one place: the `wasm:download -- vX.Y.Z` argument in `.github/workflows/deploy-pages.yml`.** CI must run that download step before `Test`/`Build` — the WASM bridge test suite loads `public/wasm/wasm_exec.js` directly and fails outright on a missing file rather than skipping. That is also the source of truth an `sff` release should update — see `roadmap`'s `.vibe/decisions/016-wasm-version-pinning-push-based-propagation.md` for the org-wide policy: exact pins, bumped by hand, no scheduled job. When bumping, also update the illustrative version number in this section and in `README.md`'s install instructions so they don't drift into stale examples.
 
 ## Architecture
-
-Early scaffold stage — only the build setup and an entry point exist so far.
 
 ```
 lifebar-viewer-web/
 ├── index.html        # Vite entry HTML
 ├── src/
-│   ├── main.ts        # app entry point
-│   ├── version.ts      # app version constant
-│   └── version.test.ts # placeholder test
+│   ├── main.ts             # app entry point
+│   ├── version.ts           # app version constant
+│   ├── lifebar/              # the lifebar .def-style format: data model + parser (item 002)
+│   ├── input/                # folder-based lifebar input + sprite sheet resolution (items 002, 003)
+│   ├── wasm/                  # bridge to the sff WASM module (item 003)
+│   └── document/              # in-memory stores: the loaded lifebar document, the resolved sprite sheet
+├── scripts/
+│   └── download-wasm.mjs   # fetches sff.wasm + wasm_exec.js for a pinned sff version
 ├── vite.config.ts     # Vite + Vitest config
 ├── tsconfig.json
 └── biome.json         # lint/format config
 ```
 
 Planned, as features land (not yet present):
-- `src/lifebar/` — the lifebar `.def`-style parser (MUGEN + Ikemen GO compatible)
-- `src/wasm/` — bridge to the `sff` WASM module (load, call bindings, adapt results to TS types) for decoding sprite sheets referenced by lifebar elements
 - `src/elements/` — elements panel (life bar, power bar, combo counter, round display, etc.) and the live preview renderer
 - `src/simulation/` — live value simulation controls (sliders) for life/power/combo values
-- `public/wasm/` — the built/downloaded `sff` `.wasm` + `wasm_exec.js` (gitignored, see above)
+- `public/wasm/` — the downloaded `sff` `.wasm` + `wasm_exec.js` (gitignored, see above)
 
 <!-- The import below loads the compact codebase map into every session. It is maintained by /vibe:sync; details (modules/, models.md, glossary.md) stay on-demand. -->
 @.vibe/index.md
