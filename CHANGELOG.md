@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-23
+
 ### Added
 
 - Users can now see a live preview of a loaded lifebar: every recognized element (life bar, power bar, face, name, win icons, match wins, round time, round display, combo) is listed, and selecting one highlights its exact region in the preview. Elements are drawn at their real configured position using the resolved sprite sheet. An element that needs a sprite sheet not loaded yet, or that references a sprite the loaded sheet doesn't actually have, is clearly marked rather than showing a broken image, and a lifebar with no recognized elements shows a clear message instead of an empty panel.
@@ -29,7 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The app now uses the shared OpenKakutou design system for its layout and styling, with a visible error message shown instead of a blank page if the design assets fail to load.
 
-[Unreleased]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/openkakutou/lifebar-viewer-web/releases/tag/v0.2.0
