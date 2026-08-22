@@ -1,0 +1,23 @@
+---
+date: 2026-08-23
+status: accepted
+---
+# Element layout reads `pos`/`N.spr`/`N.offset`; three visually distinct placeholder states, not one
+
+**Context:** Backlog item 004 needs to compute where each recognized element (`known-sections.ts`) draws in the preview, from that section's own raw, unevaluated `LifebarEntry` list (`.vibe/decisions/002` keeps the model generic — no typed position/sprite fields exist). Real MUGEN/Ikemen GO lifebar sections position a numbered stack of background sprite layers relative to the section's own anchor point; this repo has no real-file corpus yet to validate the exact convention against (fixture-driven hardening is backlog item 006, deliberately deferred, same as `known-sections.ts`'s own pattern list).
+
+**Decision:**
+- **Layout convention**: a section's `pos` entry (`"x, y"`) is its anchor point (defaulting to `(0, 0)` if absent/malformed); each `N.spr` entry (`N` a non-negative integer, e.g. `0.spr = 9000, 0`) is one layer's sprite reference, offset from the anchor by its matching `N.offset` entry if present (`(0, 0)` otherwise). This mirrors the same `.spr`-suffix-as-sprite-reference convention `lifebar-editor`'s own decision `004` already established for the same file format — independently, per roadmap decision `009` (each app keeps its own parser) — rather than inventing an unrelated one.
+- **Fixed preview canvas**: `640×480`, the classic MUGEN screen resolution every lifebar in this ecosystem is authored against. A layer's computed box is intersected with this rectangle before it can affect an element's overall highlight box, so one wild/malformed offset in a single layer cannot balloon or displace the whole element's selection highlight.
+- **Three placeholder states, not one** — collapsing these was flagged as actively misleading during planning (a diagnostic previewer's whole value is telling the user which case they're in):
+  - **No sprite layers by design** (e.g. a `Name` section, which is text in real MUGEN, not a sprite) — neutral styling, not an error.
+  - **Unresolved reference** (a `N.spr` value that's malformed, or well-formed but names a sprite the loaded sheet doesn't have) — error styling, with the specific bad reference named on hover/focus.
+  - **No sprite sheet loaded yet** — a single, distinct, whole-canvas message, never rendered as a wall of per-layer error placeholders; every element stays selectable (using anchor-point-only boxes) while this state is showing, since AC2 (select → highlight) must keep working before any sheet loads.
+- **Selection highlight is a DOM overlay, not a canvas redraw**: one absolutely-positioned `<div>` per element, sized/positioned from its computed box, always present (so it can carry hover/focus title text and take the click/keyboard-focus target) — `.is-selected` toggles a visible border; `.no-sprite`/`.unresolved` toggle the placeholder styling independently of selection. The canvas itself only ever draws resolved sprite pixels.
+
+**Reason:** Reusing the `.spr`-suffix convention keeps this org's two independent lifebar parsers approximating the same real-world format the same way, rather than each guessing differently with no corpus to check against yet. A DOM overlay for highlighting (rather than redrawing the canvas per selection) keeps the canvas itself a simple, stateless "draw what resolved" surface, and gives every element a real, accessible, hoverable/focusable/titled element for free — which a canvas-only approach cannot provide without a parallel hit-testing layer anyway. Separating "no sheet yet" from "this specific reference is broken" avoids the previewer contradicting its own purpose: a `.sff` load still in flight (or intentionally not provided) is not a data defect and must never look like one.
+
+**Rejected alternatives:**
+- *One generic "placeholder" style for every unresolved case*: rejected during planning — a domain expert (a lifebar author troubleshooting their own file) needs to tell "I haven't loaded a sheet yet" apart from "this specific sprite reference is wrong" apart from "this element just doesn't have a sprite," and a single dashed box answers none of those questions.
+- *Redraw the canvas on every selection change (fill background + re-blit all layers + draw a highlight rect)*: rejected — more work per click for no benefit over a positioned overlay, and loses the free accessibility (hover title, keyboard focus) a real DOM element provides.
+- *No fixed canvas size (size the canvas to the union of all resolved content)*: rejected — a single malformed/huge offset in one layer would still be free to distort the canvas itself, not just one element's highlight; a fixed, real-world-standard size (640×480) bounds the whole preview, not just the highlight math.

@@ -1,9 +1,37 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { resetLifebarDocumentForTests } from "./document/lifebar-document-store.ts";
+import { resetSffSpriteSheetForTests } from "./document/sff-sprite-sheet-store.ts";
 import { designTokensLoaded, renderApp } from "./main.ts";
+
+function makeFile(name: string, contents = "x"): File {
+  return new File([contents], name);
+}
+
+function fakeFileEntry(fullPath: string, file: File) {
+  return {
+    isFile: true,
+    isDirectory: false,
+    fullPath,
+    file: (success: (file: File) => void) => success(file),
+  };
+}
+
+/** jsdom's DragEvent does not implement DataTransfer, so it is stubbed directly. */
+function dispatchDrop(target: Element, entries: unknown[]): void {
+  const event = new Event("drop", { bubbles: true, cancelable: true });
+  Object.defineProperty(event, "dataTransfer", {
+    value: {
+      items: entries.map((entry) => ({ webkitGetAsEntry: () => entry })),
+    },
+  });
+  target.dispatchEvent(event);
+}
 
 describe("renderApp", () => {
   beforeEach(() => {
     document.title = "";
+    resetLifebarDocumentForTests();
+    resetSffSpriteSheetForTests();
   });
 
   it("mounts a wuik-app-shell root frame with a toolbar title (including the version) when design tokens are loaded", () => {
@@ -78,6 +106,38 @@ describe("renderApp", () => {
     renderApp(root, "0.1.0", { designTokensLoaded: () => false });
 
     expect(document.title).toBe("Lifebar Viewer — v0.1.0");
+  });
+
+  it("renders the elements panel once a folder with a lifebar file is dropped", async () => {
+    const root = document.createElement("div");
+    renderApp(root, "0.1.0", { designTokensLoaded: () => true });
+
+    const dropZone = root.querySelector(".lifebar-folder-input__dropzone");
+    if (!dropZone) throw new Error("dropzone not found");
+    dispatchDrop(dropZone, [
+      fakeFileEntry(
+        "/pack/fight.def",
+        makeFile("fight.def", "[P1 Life Bar]\npos = 5, 17\n"),
+      ),
+    ]);
+
+    await vi.waitFor(() => {
+      expect(root.querySelector(".elements-panel__item")).not.toBeNull();
+    });
+
+    expect(root.querySelectorAll(".elements-panel__item")).toHaveLength(1);
+    // No .sff candidate was in the dropped folder, so the preview stays in
+    // the "waiting for a sheet" state rather than an error one.
+    expect(
+      root.querySelector(".elements-panel__waiting-message"),
+    ).not.toBeNull();
+  });
+
+  it("renders no elements panel before any lifebar folder has loaded", () => {
+    const root = document.createElement("div");
+    renderApp(root, "0.1.0", { designTokensLoaded: () => true });
+
+    expect(root.querySelector(".elements-panel")).toBeNull();
   });
 });
 

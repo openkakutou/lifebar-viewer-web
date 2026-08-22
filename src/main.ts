@@ -1,8 +1,15 @@
 import "@openkakutou/web-ui-kit/tokens.css";
 import "@openkakutou/web-ui-kit";
 import "./style.css";
-import { setLifebarDocument } from "./document/lifebar-document-store.ts";
-import { setSffSpriteSheet } from "./document/sff-sprite-sheet-store.ts";
+import {
+  getLifebarDocument,
+  setLifebarDocument,
+} from "./document/lifebar-document-store.ts";
+import {
+  getSffSpriteSheet,
+  setSffSpriteSheet,
+} from "./document/sff-sprite-sheet-store.ts";
+import { renderElementsPanel } from "./elements/elements-panel.ts";
 import { renderLifebarFolderInput } from "./input/lifebar-folder-input-view.ts";
 import { appVersion } from "./version.ts";
 
@@ -78,9 +85,27 @@ export function renderApp(
 
   const main = document.createElement("main");
   shell.appendChild(main);
+
+  const elementsSection = document.createElement("div");
+  // Persisted across re-renders (not recreated per call) so a selected
+  // element stays selected once the sprite sheet resolves and the preview
+  // re-renders with real sprites -- see elements-panel.ts's own
+  // ElementsPanelOptions.selection.
+  const elementSelection: { index: number | null } = { index: null };
+  const refreshElementsPanel = (): void => {
+    renderElementsPanel(
+      elementsSection,
+      getLifebarDocument()?.document ?? null,
+      getSffSpriteSheet()?.spriteGroups ?? null,
+      getSffSpriteSheet()?.sffBytes ?? null,
+      { selection: elementSelection },
+    );
+  };
+
   renderLifebarFolderInput(main, {
     onLoaded: ({ document: parsedDocument, fileName, warnings }) => {
       setLifebarDocument({ fileName, document: parsedDocument, warnings });
+      refreshElementsPanel();
     },
     onSpriteSheetResolved: (result) => {
       if (result.status === "success") {
@@ -92,8 +117,10 @@ export function renderApp(
       } else {
         setSffSpriteSheet(null);
       }
+      refreshElementsPanel();
     },
   });
+  main.appendChild(elementsSection);
 
   root.appendChild(shell);
 }

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Users can now see a live preview of a loaded lifebar: every recognized element (life bar, power bar, face, name, win icons, match wins, round time, round display, combo) is listed, and selecting one highlights its exact region in the preview. Elements are drawn at their real configured position using the resolved sprite sheet. An element that needs a sprite sheet not loaded yet, or that references a sprite the loaded sheet doesn't actually have, is clearly marked rather than showing a broken image, and a lifebar with no recognized elements shows a clear message instead of an empty panel.
+
 ## [0.4.0] - 2026-08-19
 
 ### Added

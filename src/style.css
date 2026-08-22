@@ -81,3 +81,100 @@
 .lifebar-folder-input__reset {
   align-self: flex-start;
 }
+
+/*
+ * Elements panel + preview renderer (backlog item 004) -- a list of
+ * recognized elements next to a fixed-size canvas preview, with a
+ * per-element overlay for selection highlighting and unresolved/no-sprite
+ * state (see .vibe/decisions/004).
+ */
+.elements-panel {
+  padding: var(--wuik-space-4);
+}
+
+.elements-panel__empty {
+  color: var(--wuik-color-text-secondary);
+}
+
+.elements-panel__body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wuik-space-4);
+  align-items: flex-start;
+}
+
+.elements-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wuik-space-1);
+  min-width: 12ch;
+}
+
+.elements-panel__item {
+  text-align: left;
+  padding: var(--wuik-space-1) var(--wuik-space-2);
+  background: none;
+  border: 1px solid var(--wuik-color-border);
+  border-radius: var(--wuik-space-1);
+  color: var(--wuik-color-text);
+  cursor: pointer;
+}
+
+.elements-panel__item.is-selected {
+  border-color: var(--wuik-color-accent);
+  background-color: var(--wuik-color-surface);
+}
+
+.elements-panel__preview {
+  position: relative;
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid var(--wuik-color-border);
+  background-color: var(--wuik-color-bg);
+}
+
+.elements-panel__canvas {
+  display: block;
+  image-rendering: pixelated;
+}
+
+.elements-panel__overlay {
+  position: absolute;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.elements-panel__overlay--no-sprite {
+  border: 1px dashed var(--wuik-color-border);
+}
+
+.elements-panel__overlay--waiting {
+  border: 1px dashed var(--wuik-color-text-secondary);
+}
+
+.elements-panel__overlay--unresolved {
+  border: 1px dashed var(--wuik-color-danger);
+}
+
+.elements-panel__overlay.is-selected {
+  border: 2px solid var(--wuik-color-accent);
+}
+
+/*
+ * A banner, not a full-cover overlay: element overlays stay visible (and
+ * clickable) underneath it, since AC2's "selecting highlights it" must
+ * keep working while a sheet hasn't loaded yet -- see .vibe/decisions/004.
+ */
+.elements-panel__waiting-message {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: var(--wuik-space-2) var(--wuik-space-3);
+  text-align: center;
+  color: var(--wuik-color-text-secondary);
+  background-color: var(--wuik-color-surface);
+  border-bottom: 1px solid var(--wuik-color-border);
+  pointer-events: none;
+}

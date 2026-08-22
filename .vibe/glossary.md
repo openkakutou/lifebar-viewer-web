@@ -6,8 +6,13 @@ The health bar, power bar, combo counter, and round display UI a MUGEN/Ikemen GO
 _Sources: `src/lifebar/document.ts`, `src/lifebar/parse.ts`_
 
 ## Section
-A `[Section Name]` block within a lifebar's `.def`-style file, holding an ordered list of `key = value` entries. This app only builds a typed representation for sections it recognizes (life bar, power bar, face, name, win icons, match wins, round time, combo); any other syntactically valid section is skipped with a warning rather than blocking the load.
-_Sources: `src/lifebar/document.ts`, `src/lifebar/parse.ts`, `src/lifebar/known-sections.ts`_
+A `[Section Name]` block within a lifebar's `.def`-style file, holding an ordered list of `key = value` entries. This app only builds a typed representation for sections it recognizes (life bar, power bar, face, name, win icons, match wins, round time, combo); any other syntactically valid section is skipped with a warning rather than blocking the load. The elements panel UI calls a Section an "element" (e.g. "Elements (3)") — the same concept, user-facing wording only.
+_Sources: `src/lifebar/document.ts`, `src/lifebar/parse.ts`, `src/lifebar/known-sections.ts`, `src/elements/elements-panel.ts`_
+
+## Sprite layer
+One `N.spr` entry within a Section (`N` a non-negative integer, e.g. `0.spr = 9000, 0`) — a single positioned sprite reference contributing to that element's visual composite, offset from the Section's own anchor point (its `pos` entry) by a matching `N.offset` entry if present. The real MUGEN/Ikemen GO convention for a section's layered background sprites.
+**Do not confuse with:** Sprite, the sheet image a layer's reference points at; a layer is the positioned reference, not the image itself.
+_Sources: `src/elements/element-layout.ts`_
 
 ## Lifebar pack
 A folder distributed as a unit, bundling a lifebar's `.def`-style file together with the other assets it references (fonts, sprite sheets). This app's input is folder-only for exactly this reason: a single picked file can never reach its sibling assets in the browser.

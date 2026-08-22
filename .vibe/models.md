@@ -65,3 +65,11 @@ Defined in: `src/input/sprite-sheet-folder-input.ts`
 | sffBytes | Uint8Array | |
 | spriteGroups | SpriteGroup[] | |
 Defined in: `src/document/sff-sprite-sheet-store.ts`
+
+## ElementLayout / ElementLayer / Point / Box
+A recognized section's computed layout, read from its own raw entries. `ElementLayout` is `{name, origin: Point, layers: ElementLayer[]}`. `ElementLayer` is `{index, offset: Point, spriteRef: {group, image} | null}` (`spriteRef` null when its `N.spr` value is malformed). `Point` is `{x, y}`; `Box` is `{x, y, width, height}`.
+Defined in: `src/elements/element-layout.ts`
+
+## LayerResolution / ElementBoxResult
+`LayerResolution` is a layer's resolution against a (possibly not-yet-loaded) sprite sheet: `{kind: "no-sheet"} | {kind: "invalid", raw} | {kind: "resolved", sprite: Sprite}` — three distinct states, not one generic "unresolved" (see `.vibe/decisions/004`). `ElementBoxResult` is `{box: Box, layerResolutions: LayerResolution[]}`, one resolution per layer in `ElementLayout.layers` order.
+Defined in: `src/elements/element-layout.ts`

@@ -17,9 +17,12 @@ flowchart TD
     store["document/lifebar-document-store.ts\n(in-memory loaded document)"]
     sheetStore["document/sff-sprite-sheet-store.ts\n(in-memory sprite sheet)"]
     wasm["wasm/bridge.ts\n(sff WASM bridge)"]
+    layout["elements/element-layout.ts\n(position + sprite-layer computation)"]
+    panel["elements/elements-panel.ts\n(list + canvas preview UI)"]
     main["main.ts\n(app shell)"]
 
     main --> view
+    main --> panel
     view --> entries
     view --> orchestration
     view --> sheetOrchestration
@@ -32,6 +35,9 @@ flowchart TD
     sheetOrchestration --> wasm
     view --> store
     view --> sheetStore
+    panel --> layout
+    panel --> wasm
+    layout --> document
 ```
 
 - `main.ts` mounts the `web-ui-kit` app shell and, into its `<main>` region, the folder input view.
@@ -42,7 +48,9 @@ flowchart TD
 - `input/sprite-sheet-folder-input.ts` is the sprite sheet equivalent: filter the same gathered files to `.sff` candidates, then read and decode the sole one via `wasm/bridge.ts` — see `.vibe/decisions/003-sprite-sheet-resolved-from-the-same-folder-no-separate-picker.md` for why this reuses the lifebar's own folder listing instead of a second picker.
 - `wasm/bridge.ts` (with `wasm/types.ts`) is the bridge to the sibling `sff` library's WebAssembly build: loads `wasm_exec.js` + `sff.wasm` (downloaded via `scripts/download-wasm.mjs`, `npm run wasm:download`, never committed) and exposes typed `loadSpriteSheet`/`resolveSpritePixels` wrappers.
 - `lifebar/parse.ts` parses `.def`-style text into a `LifebarDocument`, using `lifebar/known-sections.ts` to decide which sections are modeled versus reported as a skip warning. `lifebar/document.ts` defines the data model.
-- `document/lifebar-document-store.ts` holds the currently loaded lifebar document in memory; `document/sff-sprite-sheet-store.ts` holds the currently resolved sprite sheet (file name, raw bytes, decoded metadata) — both for a later screen (the elements panel) to read from.
+- `document/lifebar-document-store.ts` holds the currently loaded lifebar document in memory; `document/sff-sprite-sheet-store.ts` holds the currently resolved sprite sheet (file name, raw bytes, decoded metadata) — read by `elements/elements-panel.ts`.
+- `elements/element-layout.ts` is pure logic (no DOM): computes where each recognized section draws, from its own raw `pos`/`N.spr`/`N.offset` entries, and resolves each `N.spr` layer against the loaded sprite sheet's metadata into one of three states (no sheet yet, invalid reference, resolved) — see `.vibe/decisions/004-element-layout-convention-and-placeholder-states.md`.
+- `elements/elements-panel.ts` renders the element list and a fixed `640×480` canvas preview: batch-decodes every resolved layer's pixels via `wasm/bridge.ts` and draws them at their computed position, with a per-element DOM overlay (not a canvas redraw) carrying the selection highlight and any unresolved/no-sprite/waiting-for-sheet state.
 
 ## Data flow: loading a lifebar
 
@@ -110,4 +118,15 @@ sequenceDiagram
 ```
 
 Deliberately reuses the lifebar's own already-gathered folder listing rather than a second file picker — see `.vibe/decisions/003-sprite-sheet-resolved-from-the-same-folder-no-separate-picker.md`. Unlike the lifebar's own multi-candidate flow, several `.sff` candidates do not prompt the user to pick one; the sheet simply stays unresolved and the status text says so.
+
+## Data flow: previewing elements
+
+`main.ts` re-renders `elements/elements-panel.ts` after either store changes (the lifebar loads, or the sprite sheet resolves/fails/is still pending), passing the same selection object each time so an already-selected element stays selected across that re-render.
+
+1. Every recognized section becomes an `ElementLayout` (`element-layout.ts`'s `computeElementLayout`): its `pos` entry as an origin point, plus one `ElementLayer` per `N.spr` entry (offset by the matching `N.offset`, `(0, 0)` otherwise).
+2. Each layer is resolved against the sprite sheet's metadata (`resolveLayer`) into `no-sheet` (nothing loaded yet), `invalid` (malformed value, or a group/image the sheet doesn't have), or `resolved` (real sprite metadata). `computeElementBox` unions every layer's box (the real sprite size when resolved, a fixed placeholder size otherwise) into the element's overall highlight box, clamped to the fixed `640×480` canvas so one wild/malformed offset can't distort it.
+3. `elements-panel.ts` renders one list button and one absolutely-positioned overlay `<div>` per element from that box — the overlay, not the canvas, carries the `is-selected` highlight and the `no-sprite`/`unresolved`/`waiting` state classes, since a canvas redraw would need to re-blit everything just to toggle a highlight.
+4. Only every *resolved* layer across every element is batch-decoded in one `wasm/bridge.ts` `resolveSpritePixels` call (sffBytes transferred once), then each result is drawn onto the shared canvas at its own computed position.
+
+`spriteGroups === null` (no sheet loaded, or resolution failed) skips step 4 entirely and shows one shared banner message instead of per-element error placeholders — every element stays listed and selectable throughout, since a `.sff` still loading is not a data defect.
 

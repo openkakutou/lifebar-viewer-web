@@ -71,6 +71,18 @@ read-error/setup-error/parse-error paths without an actual unreadable
 `File`, a missing WASM build, or a real corrupt `.sff` file, and to
 simulate a dropped folder's contents without a real browser drag gesture.
 
+## The preview canvas is tested via an injectable 2D context, not real jsdom drawing
+
+`jsdom` does not implement `HTMLCanvasElement.getContext("2d")` at all (it
+logs a virtual-console error and returns `null`) — `elements-panel.ts`'s
+`getContext2d` option lets a test supply a fake, non-`null` context object
+so its own injected `drawSprite` stub actually gets called and its
+arguments can be asserted, without ever touching a real canvas. A test
+that only cares about layout/positioning (not drawing) also stubs
+`resolveSpritePixels` to an empty result, so it never triggers the real
+WASM bridge as an unintended side effect just because it happened to pass
+a non-`null` sprite sheet.
+
 ## Beyond the test suite: real-browser verification
 
 Passing tests are not treated as proof the folder input works. It was
@@ -86,3 +98,13 @@ error), and a drop with a malformed sprite sheet alongside a well-formed
 lifebar (the lifebar still loads; the sprite sheet parse-error names the
 right file) — with zero console errors across all cases. This isn't part
 of `npm test`; it's a manual verification step, not a CI gate.
+
+The elements panel got the same treatment against the real WASM build: a
+dropped folder with a lifebar file (one element with a resolvable sprite
+layer, one text-only element with none, one element referencing a sprite
+absent from the sheet) plus a real `.sff` fixture confirmed the resolved
+element's sprite renders at its exact real pixel dimensions and computed
+position, the no-sprite and unresolved elements show their own distinct
+placeholder styling and hover text (never confused with each other or with
+a real error), and selecting each of the three updates the highlight to
+the right region — with zero console errors.
