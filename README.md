@@ -9,10 +9,7 @@ This project is in early-stage development. Available now:
 - Load a lifebar by selecting or dropping the folder it's distributed in — MUGEN and Ikemen GO `.def`-style files are both supported. If the folder has exactly one lifebar file it loads automatically; if it has several, you're asked which one to load. A malformed file shows a clear error, and any section this app doesn't yet recognize is skipped with a warning instead of blocking the load.
 - The sprite sheet a loaded lifebar references is decoded automatically from the same folder, no extra step needed. A missing sprite sheet build or a corrupt sprite sheet shows a clear message without blocking the lifebar itself from loading.
 - See a live preview of every recognized element (life bar, power bar, face, name, win icons, match wins, round time, round display, combo): each one is listed, drawn at its real configured position using the resolved sprite sheet, and selecting it highlights exactly where it sits in the preview. An element that needs a sprite sheet not loaded yet, or that references a sprite the loaded sheet doesn't have, is clearly marked instead of showing a broken image, and a lifebar with no recognized elements shows a clear message instead of an empty panel.
-
-Planned:
-
-- Live value simulation controls (sliders) to preview life/power/combo values without a real match running
+- Simulate life, power, and combo count values with sliders (paired with numeric inputs for precise entry) to see how the loaded lifebar's elements react, without a real match running. A slider only appears for a value the loaded lifebar actually defines, and an out-of-range or invalid entry clamps to a valid value instead of showing a broken state.
 <!-- vibe:end:features -->
 
 <!-- vibe:begin:install -->

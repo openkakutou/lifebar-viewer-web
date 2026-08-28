@@ -26,3 +26,8 @@ _Sources: `src/wasm/types.ts`, `src/wasm/bridge.ts`, `src/input/sprite-sheet-fol
 ## Sprite
 One image within a Sprite sheet, identified by its group and image index (e.g. group 0, image 3), with its own pixel dimensions, pivot (axis) point, and palette reference.
 _Sources: `src/wasm/types.ts`_
+
+## Simulated value
+A life, power, or combo count value the user sets via a slider to preview how the corresponding Element reacts, without a real match running. Detected only for a Section the loaded lifebar actually defines, shown as a diagnostic overlay on top of that Element's own rendering rather than mixed into it — see `.vibe/decisions/005-simulation-values-shown-as-diagnostic-overlay-not-authentic-rendering.md`.
+**Do not confuse with:** the values a real MUGEN/Ikemen GO match computes and renders authentically — a Simulated value is a diagnostic approximation this app draws on top, never a substitute for real bar-fill/font rendering.
+_Sources: `src/simulation/simulated-values.ts`, `src/simulation/simulation-controls.ts`, `src/simulation/simulation-overlay.ts`_

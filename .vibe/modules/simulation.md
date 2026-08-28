@@ -1,0 +1,5 @@
+# Module: simulation
+**Role:** Live value simulation controls (backlog item 005): detects which sections of a loaded lifebar can have a simulated life/power/combo value, renders a slider + numeric input per detected slot grouped by player, and draws the resulting value as a diagnostic overlay on top of the element's own box in the preview — never mixed into the real sprite rendering. See `.vibe/decisions/005-simulation-values-shown-as-diagnostic-overlay-not-authentic-rendering.md`.
+**Files:** `src/simulation/simulated-values.ts`, `src/simulation/simulation-controls.ts`, `src/simulation/simulation-overlay.ts`
+**Exports:** `SimulatedValueKind`, `SimulatableSlot`, `detectSimulatableSlots(document)`, `defaultSimulatedValue(kind)`, `clampSimulatedValue(kind, raw)`, `renderSimulationControls(root, document, values, onChange)`, `renderSimulationOverlay(container, box, slot, value)`
+**Depends on:** `modules/lifebar.md` (`LifebarDocument` type), `modules/elements.md` (`Box` type, for the overlay's positioning)

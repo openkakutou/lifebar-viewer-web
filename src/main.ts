@@ -11,6 +11,11 @@ import {
 } from "./document/sff-sprite-sheet-store.ts";
 import { renderElementsPanel } from "./elements/elements-panel.ts";
 import { renderLifebarFolderInput } from "./input/lifebar-folder-input-view.ts";
+import {
+  defaultSimulatedValue,
+  detectSimulatableSlots,
+} from "./simulation/simulated-values.ts";
+import { renderSimulationControls } from "./simulation/simulation-controls.ts";
 import { appVersion } from "./version.ts";
 
 const APP_TITLE = "Lifebar Viewer";
@@ -86,25 +91,55 @@ export function renderApp(
   const main = document.createElement("main");
   shell.appendChild(main);
 
+  const simulationSection = document.createElement("div");
   const elementsSection = document.createElement("div");
   // Persisted across re-renders (not recreated per call) so a selected
   // element stays selected once the sprite sheet resolves and the preview
   // re-renders with real sprites -- see elements-panel.ts's own
   // ElementsPanelOptions.selection.
   const elementSelection: { index: number | null } = { index: null };
+  // Simulated values (backlog item 005) persist across re-renders the same
+  // way -- loading a new sprite sheet, or any other reason the elements
+  // panel re-renders, must never reset a value the user already set. Keyed
+  // by SimulatableSlot.key; a slot with no entry yet shows no overlay,
+  // never a default the user didn't actually choose.
+  const simulatedValues: Record<string, number> = {};
   const refreshElementsPanel = (): void => {
     renderElementsPanel(
       elementsSection,
       getLifebarDocument()?.document ?? null,
       getSffSpriteSheet()?.spriteGroups ?? null,
       getSffSpriteSheet()?.sffBytes ?? null,
-      { selection: elementSelection },
+      { selection: elementSelection, simulatedValues },
+    );
+  };
+  const refreshSimulationControls = (): void => {
+    renderSimulationControls(
+      simulationSection,
+      getLifebarDocument()?.document ?? null,
+      simulatedValues,
+      (key, value) => {
+        simulatedValues[key] = value;
+        refreshElementsPanel();
+      },
     );
   };
 
   renderLifebarFolderInput(main, {
     onLoaded: ({ document: parsedDocument, fileName, warnings }) => {
       setLifebarDocument({ fileName, document: parsedDocument, warnings });
+      // A freshly-loaded file starts every simulatable slot at its own
+      // default (life/power full, combo zero) so the controls and the
+      // preview overlay agree from the very first render -- never a
+      // slider reading 100 next to a preview with no overlay yet, which
+      // would only resolve once the user first touches something.
+      for (const key of Object.keys(simulatedValues)) {
+        delete simulatedValues[key];
+      }
+      for (const slot of detectSimulatableSlots(parsedDocument)) {
+        simulatedValues[slot.key] = defaultSimulatedValue(slot.kind);
+      }
+      refreshSimulationControls();
       refreshElementsPanel();
     },
     onSpriteSheetResolved: (result) => {
@@ -120,7 +155,7 @@ export function renderApp(
       refreshElementsPanel();
     },
   });
-  main.appendChild(elementsSection);
+  main.append(simulationSection, elementsSection);
 
   root.appendChild(shell);
 }

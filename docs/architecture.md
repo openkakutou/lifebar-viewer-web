@@ -19,10 +19,14 @@ flowchart TD
     wasm["wasm/bridge.ts\n(sff WASM bridge)"]
     layout["elements/element-layout.ts\n(position + sprite-layer computation)"]
     panel["elements/elements-panel.ts\n(list + canvas preview UI)"]
+    simValues["simulation/simulated-values.ts\n(detect slots, defaults, clamping)"]
+    simControls["simulation/simulation-controls.ts\n(sliders + numeric inputs UI)"]
+    simOverlay["simulation/simulation-overlay.ts\n(diagnostic fill/badge overlay)"]
     main["main.ts\n(app shell)"]
 
     main --> view
     main --> panel
+    main --> simControls
     view --> entries
     view --> orchestration
     view --> sheetOrchestration
@@ -37,7 +41,12 @@ flowchart TD
     view --> sheetStore
     panel --> layout
     panel --> wasm
+    panel --> simValues
+    panel --> simOverlay
     layout --> document
+    simControls --> simValues
+    simOverlay --> simValues
+    simValues --> document
 ```
 
 - `main.ts` mounts the `web-ui-kit` app shell and, into its `<main>` region, the folder input view.
@@ -51,6 +60,9 @@ flowchart TD
 - `document/lifebar-document-store.ts` holds the currently loaded lifebar document in memory; `document/sff-sprite-sheet-store.ts` holds the currently resolved sprite sheet (file name, raw bytes, decoded metadata) — read by `elements/elements-panel.ts`.
 - `elements/element-layout.ts` is pure logic (no DOM): computes where each recognized section draws, from its own raw `pos`/`N.spr`/`N.offset` entries, and resolves each `N.spr` layer against the loaded sprite sheet's metadata into one of three states (no sheet yet, invalid reference, resolved) — see `.vibe/decisions/004-element-layout-convention-and-placeholder-states.md`.
 - `elements/elements-panel.ts` renders the element list and a fixed `640×480` canvas preview: batch-decodes every resolved layer's pixels via `wasm/bridge.ts` and draws them at their computed position, with a per-element DOM overlay (not a canvas redraw) carrying the selection highlight and any unresolved/no-sprite/waiting-for-sheet state.
+- `simulation/simulated-values.ts` is pure logic (no DOM): `detectSimulatableSlots` scans a loaded document for life/power/combo sections, and `defaultSimulatedValue`/`clampSimulatedValue` hold each kind's default and valid range.
+- `simulation/simulation-controls.ts` renders a slider paired with a numeric input for each detected slot, grouped by player, calling back with the clamped value on every change.
+- `simulation/simulation-overlay.ts` draws a simulated value as a diagnostic overlay on top of an element's own box in the preview — a fill bar for life/power, a numeric badge for combo — visually distinct from the selection highlight so both can be seen on the same element at once. See `.vibe/decisions/005-simulation-values-shown-as-diagnostic-overlay-not-authentic-rendering.md` for why this is a diagnostic overlay rather than authentic MUGEN bar-fill/font rendering.
 
 ## Data flow: loading a lifebar
 
@@ -129,4 +141,14 @@ Deliberately reuses the lifebar's own already-gathered folder listing rather tha
 4. Only every *resolved* layer across every element is batch-decoded in one `wasm/bridge.ts` `resolveSpritePixels` call (sffBytes transferred once), then each result is drawn onto the shared canvas at its own computed position.
 
 `spriteGroups === null` (no sheet loaded, or resolution failed) skips step 4 entirely and shows one shared banner message instead of per-element error placeholders — every element stays listed and selectable throughout, since a `.sff` still loading is not a data defect.
+
+## Data flow: simulating values
+
+`main.ts` keeps a `simulatedValues` record (keyed by `SimulatableSlot.key`) alongside the element selection state, persisted across re-renders the same way.
+
+1. When a lifebar loads, `main.ts` calls `detectSimulatableSlots` and seeds every detected slot at its kind's default (`defaultSimulatedValue`) — life/power full, combo zero — so the controls and the preview overlay agree from the very first render.
+2. `simulation-controls.ts` renders one slider + numeric input row per slot, grouped by player. Moving either control clamps the raw value (`clampSimulatedValue`) and calls back into `main.ts`, which updates `simulatedValues` and re-renders both the controls (to sync the slider/input pair) and the elements panel.
+3. `elements-panel.ts` looks up each rendered section's slot (if any) in `simulatedValues` and, when a value is present, calls `simulation-overlay.ts` to draw the diagnostic overlay at that element's already-computed box — entirely independent of whether the sprite sheet has resolved.
+
+A slot with no entry in `simulatedValues` yet (or a section that isn't simulatable at all) gets no overlay — never a default the user didn't actually choose.
 

@@ -9,6 +9,8 @@
 // and "no sheet loaded yet" are three visually distinct states rather than
 // one generic placeholder.
 import type { LifebarDocument } from "../lifebar/document.ts";
+import { detectSimulatableSlots } from "../simulation/simulated-values.ts";
+import { renderSimulationOverlay } from "../simulation/simulation-overlay.ts";
 import {
   type SpritePixelResult,
   type WasmBridgeOptions,
@@ -71,6 +73,13 @@ export interface ElementsPanelOptions {
     width: number,
     height: number,
   ) => void;
+  /**
+   * Current simulated values (backlog item 005), keyed by `SimulatableSlot.key`.
+   * A section with no entry here (its slot was never touched, or the
+   * section isn't simulatable at all) gets no overlay — see
+   * .vibe/decisions/005-simulation-values-shown-as-diagnostic-overlay-not-authentic-rendering.md.
+   */
+  simulatedValues?: Readonly<Record<string, number>>;
 }
 
 /**
@@ -136,6 +145,10 @@ export function renderElementsPanel(
   const boxResults = layouts.map((layout) =>
     computeElementBox(layout, spriteGroups),
   );
+  const simulatedValues = options.simulatedValues ?? {};
+  const simulatableSlotsBySectionIndex = new Map(
+    detectSimulatableSlots(document_).map((slot) => [slot.sectionIndex, slot]),
+  );
 
   const buttons: HTMLButtonElement[] = [];
   const overlays: HTMLElement[] = [];
@@ -195,6 +208,12 @@ export function renderElementsPanel(
     overlay.addEventListener("click", () => select(i));
     preview.appendChild(overlay);
     overlays.push(overlay);
+
+    const slot = simulatableSlotsBySectionIndex.get(i);
+    const value = slot ? simulatedValues[slot.key] : undefined;
+    if (slot && value !== undefined) {
+      renderSimulationOverlay(preview, box, slot, value);
+    }
   });
 
   if (spriteGroups === null) {

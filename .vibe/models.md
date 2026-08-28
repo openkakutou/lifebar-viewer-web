@@ -73,3 +73,13 @@ Defined in: `src/elements/element-layout.ts`
 ## LayerResolution / ElementBoxResult
 `LayerResolution` is a layer's resolution against a (possibly not-yet-loaded) sprite sheet: `{kind: "no-sheet"} | {kind: "invalid", raw} | {kind: "resolved", sprite: Sprite}` — three distinct states, not one generic "unresolved" (see `.vibe/decisions/004`). `ElementBoxResult` is `{box: Box, layerResolutions: LayerResolution[]}`, one resolution per layer in `ElementLayout.layers` order.
 Defined in: `src/elements/element-layout.ts`
+
+## SimulatableSlot
+| Field | Type | Notes |
+|---|---|---|
+| key | string | stable, `sectionIndex`-suffixed — never collides on a malformed file with duplicate sections |
+| kind | "life" \| "power" \| "combo" | |
+| player | 1 \| 2 \| null | null for combo, which has no player-number prefix |
+| sectionIndex | number | index into `LifebarDocument.sections` |
+| label | string | e.g. "P1 — Life", "Combo" |
+Defined in: `src/simulation/simulated-values.ts`

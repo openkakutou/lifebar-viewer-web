@@ -178,3 +178,94 @@
   border-bottom: 1px solid var(--wuik-color-border);
   pointer-events: none;
 }
+
+/*
+ * Live value simulation (backlog item 005). The simulated-value overlay
+ * deliberately never reuses `--wuik-color-accent` (selection) or
+ * `--wuik-color-danger` (unresolved reference) -- `--wuik-color-warning`
+ * plus a diagonal-stripe pattern is the cue, so it reads as "diagnostic
+ * overlay" regardless of what hue the sprite underneath happens to be, and
+ * survives being visible at the same time as a selection highlight. See
+ * .vibe/decisions/005-simulation-values-shown-as-diagnostic-overlay-not-authentic-rendering.md.
+ */
+
+.simulation-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wuik-space-4);
+  padding: var(--wuik-space-3) var(--wuik-space-4);
+}
+
+.simulation-controls__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--wuik-space-2);
+}
+
+.simulation-controls__group h4 {
+  margin: 0;
+  font-size: var(--wuik-font-size-sm);
+  color: var(--wuik-color-text-secondary);
+}
+
+.simulation-controls__row {
+  display: flex;
+  align-items: center;
+  gap: var(--wuik-space-2);
+}
+
+.simulation-controls__label {
+  min-width: 8em;
+  font-size: var(--wuik-font-size-sm);
+}
+
+.simulation-controls__row input[type="number"] {
+  width: 4.5em;
+}
+
+.simulation-overlay {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.simulation-overlay--fill {
+  border: 1px dashed var(--wuik-color-warning);
+}
+
+.simulation-overlay__fill-bar {
+  height: 100%;
+  background-color: var(--wuik-color-warning);
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgb(0 0 0 / 15%) 0,
+    rgb(0 0 0 / 15%) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  opacity: 0.55;
+}
+
+.simulation-overlay__label {
+  position: absolute;
+  top: var(--wuik-space-1);
+  left: var(--wuik-space-1);
+  padding: 0 var(--wuik-space-1);
+  font-size: var(--wuik-font-size-sm);
+  font-weight: var(--wuik-font-weight-medium);
+  color: var(--wuik-color-text);
+  background-color: var(--wuik-color-bg);
+  border: 1px solid var(--wuik-color-warning);
+  border-radius: var(--wuik-space-1);
+  opacity: 1;
+}
+
+.simulation-overlay__badge {
+  padding: 0 var(--wuik-space-1);
+  font-size: var(--wuik-font-size-sm);
+  font-weight: var(--wuik-font-weight-medium);
+  color: var(--wuik-color-text);
+  background-color: var(--wuik-color-warning);
+  border-radius: var(--wuik-space-1);
+}

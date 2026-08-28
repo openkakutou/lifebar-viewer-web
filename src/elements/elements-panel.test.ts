@@ -322,3 +322,74 @@ describe("renderElementsPanel", () => {
     expect(resolveSpritePixels).not.toHaveBeenCalled();
   });
 });
+
+describe("renderElementsPanel — simulated values (backlog item 005)", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("renders no simulation overlay for a section with no value given", () => {
+    const root = document.createElement("div");
+
+    renderElementsPanel(
+      root,
+      doc([{ name: "P1 Life Bar", entries: [], line: 1 }]),
+      null,
+      null,
+      {},
+    );
+
+    expect(root.querySelector(".simulation-overlay")).toBeNull();
+  });
+
+  it("renders the fill overlay for a simulated life bar", () => {
+    const root = document.createElement("div");
+
+    renderElementsPanel(
+      root,
+      doc([{ name: "P1 Life Bar", entries: [], line: 1 }]),
+      null,
+      null,
+      { simulatedValues: { "life-0": 60 } },
+    );
+
+    const fill = root.querySelector<HTMLElement>(
+      ".simulation-overlay__fill-bar",
+    );
+    expect(fill?.style.width).toBe("60%");
+  });
+
+  it("renders no overlay for a non-simulatable section even if simulatedValues is non-empty", () => {
+    const root = document.createElement("div");
+
+    renderElementsPanel(
+      root,
+      doc([{ name: "P1 Face", entries: [], line: 1 }]),
+      null,
+      null,
+      { simulatedValues: { "life-0": 60 } },
+    );
+
+    expect(root.querySelector(".simulation-overlay")).toBeNull();
+  });
+
+  it("keeps the simulation overlay and the selection overlay independently present on the same element", () => {
+    const root = document.createElement("div");
+    const selection = { index: 0 };
+
+    renderElementsPanel(
+      root,
+      doc([{ name: "P1 Life Bar", entries: [], line: 1 }]),
+      null,
+      null,
+      { simulatedValues: { "life-0": 60 }, selection },
+    );
+
+    expect(root.querySelector(".simulation-overlay__fill-bar")).not.toBeNull();
+    expect(
+      root
+        .querySelector(".elements-panel__overlay")
+        ?.classList.contains("is-selected"),
+    ).toBe(true);
+  });
+});

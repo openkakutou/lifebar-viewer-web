@@ -83,6 +83,21 @@ that only cares about layout/positioning (not drawing) also stubs
 WASM bridge as an unintended side effect just because it happened to pass
 a non-`null` sprite sheet.
 
+## Simulation controls and overlay are tested as pure logic plus DOM assertions
+
+`src/simulation/simulated-values.test.ts` exercises `detectSimulatableSlots`,
+`defaultSimulatedValue`, and `clampSimulatedValue` as pure functions —
+including a non-finite (`NaN`) input, which must clamp to the range
+minimum rather than propagate. `simulation-controls.test.ts` and
+`simulation-overlay.test.ts` render into a real DOM (jsdom) and assert on
+the resulting elements/attributes (e.g. the combo slider's `max`, the
+clamped value reflected in both the range and numeric inputs, the fill
+bar's proportional width) rather than only checking the render didn't
+throw. `elements-panel.test.ts` covers the integration point: a section
+with no simulated value gets no overlay, a non-simulatable section gets no
+overlay even when other values are set, and the simulation overlay and the
+selection overlay stay independently present on the same element.
+
 ## Beyond the test suite: real-browser verification
 
 Passing tests are not treated as proof the folder input works. It was
@@ -108,3 +123,13 @@ position, the no-sprite and unresolved elements show their own distinct
 placeholder styling and hover text (never confused with each other or with
 a real error), and selecting each of the three updates the highlight to
 the right region — with zero console errors.
+
+The live value simulation controls got the same treatment: loading a
+lifebar with life, power, and combo sections shows one slider+numeric-input
+row per value, grouped by player; moving the P1 life slider immediately
+updates its element's diagnostic overlay to the matching percentage, live,
+with no page reload; typing an out-of-range value (`999`) into the numeric
+input clamps both the input and the overlay to the range maximum; clearing
+the field clamps to the range minimum instead of showing a broken state;
+and moving the combo slider shows a numeric badge (not a fill bar) with
+the matching value — with zero console errors throughout.

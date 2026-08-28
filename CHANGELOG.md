@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Users can now simulate life, power, and combo count values with sliders (paired with numeric inputs for precise entry) to see how a loaded lifebar's elements react, without a real match running. A slider only appears for a value the loaded lifebar actually defines, and out-of-range or invalid entries clamp to a valid value instead of showing a broken state.
+
 ## [0.5.0] - 2026-08-23
 
 ### Added
