@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Users can now simulate life, power, and combo count values with sliders (paired with numeric inputs for precise entry) to see how a loaded lifebar's elements react, without a real match running. A slider only appears for a value the loaded lifebar actually defines, and out-of-range or invalid entries clamp to a valid value instead of showing a broken state.
 
+### Fixed
+
+- Fixed a loaded lifebar pack showing no sprites at all when its folder contains more than one sprite sheet file (a real-world pack shape: a main sheet plus a separate effects sheet). The app now reads which one the lifebar file itself declares as its sprite sheet and loads that one automatically, instead of giving up.
+
 ## [0.5.0] - 2026-08-23
 
 ### Added

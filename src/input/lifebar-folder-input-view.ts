@@ -263,6 +263,7 @@ export function renderLifebarFolderInput(
 
       const spriteSheetResult = await loadSpriteSheetFromFolderFiles(
         lastGatheredFiles,
+        result.document,
         options.spriteSheetOptions,
       );
       statusMessage = `${statusMessage} ${formatSpriteSheetMessage(spriteSheetResult)}`;

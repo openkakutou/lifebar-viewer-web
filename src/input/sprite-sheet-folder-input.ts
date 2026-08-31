@@ -3,6 +3,7 @@
 // separate picker — since a lifebar pack bundles the `.def`-style file
 // together with the sprite sheet(s) it references. See
 // .vibe/decisions/003-sprite-sheet-resolved-from-the-same-folder-no-separate-picker.md.
+import type { LifebarDocument } from "../lifebar/document.ts";
 import {
   type SpriteSheetResult,
   type WasmBridgeOptions,
@@ -63,27 +64,73 @@ export interface SpriteSheetFolderInputOptions {
 }
 
 /**
+ * The `.sff` file name a lifebar's own `[Files]` section declares as its
+ * sprite sheet (the `sff = ...` entry), or `null` if the document has no
+ * such section/entry. A real `.def` file can list the same key more than
+ * once (`document.ts`'s ordered, never-collapsed sections) — the last one
+ * wins, matching how MUGEN/Ikemen GO itself evaluates repeated keys.
+ */
+function findDeclaredSpriteSheetFileName(
+  document: LifebarDocument,
+): string | null {
+  const filesSection = document.sections.find(
+    (section) => section.name.trim().toLowerCase() === "files",
+  );
+  if (!filesSection) {
+    return null;
+  }
+  const sffEntries = filesSection.entries.filter(
+    (entry) => entry.key.trim().toLowerCase() === "sff",
+  );
+  if (sffEntries.length === 0) {
+    return null;
+  }
+  return sffEntries[sffEntries.length - 1].value.trim();
+}
+
+/**
  * Filters `files` (the same folder listing already gathered for the
  * lifebar file) down to `.sff` candidates: none found leaves the sprite
- * sheet unresolved (not an error — the lifebar itself still loaded fine),
- * several found also leaves it unresolved rather than adding a second
- * selection prompt (see the ADR above), and exactly one auto-loads.
+ * sheet unresolved (not an error — the lifebar itself still loaded fine).
+ * Exactly one auto-loads. Several found is disambiguated against
+ * `document`'s own declared `[Files]`/`sff` entry — a real lifebar pack can
+ * legitimately bundle more than one `.sff` (e.g. a main sheet plus a
+ * separate effects sheet declared under its own key, as in the "VHD" pack)
+ * — and only left unresolved (no second selection prompt, see the ADR
+ * above) if no candidate matches that declared name.
  */
 export async function loadSpriteSheetFromFolderFiles(
   files: readonly GatheredFile[],
+  document: LifebarDocument | null,
   options: SpriteSheetFolderInputOptions = {},
 ): Promise<SpriteSheetFolderResult> {
   const candidates = findCandidateSpriteSheetFiles(files);
   if (candidates.length === 0) {
     return { status: "none-found" };
   }
-  if (candidates.length > 1) {
-    return { status: "multiple-found", candidates };
+
+  let entry: GatheredFile;
+  if (candidates.length === 1) {
+    entry = candidates[0];
+  } else {
+    const declaredFileName = document
+      ? findDeclaredSpriteSheetFileName(document)
+      : null;
+    const matched = declaredFileName
+      ? candidates.find(
+          (candidate) =>
+            candidate.file.name.toLowerCase() ===
+            declaredFileName.toLowerCase(),
+        )
+      : undefined;
+    if (!matched) {
+      return { status: "multiple-found", candidates };
+    }
+    entry = matched;
   }
 
   const readFileBytes = options.readFileBytes ?? readFileAsBytes;
   const loadSpriteSheet = options.loadSpriteSheet ?? defaultLoadSpriteSheet;
-  const entry = candidates[0];
   const fileName = entry.file.name;
 
   let sffBytes: Uint8Array;
