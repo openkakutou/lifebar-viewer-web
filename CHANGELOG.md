@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed a loaded lifebar pack showing no sprites at all when its folder contains more than one sprite sheet file (a real-world pack shape: a main sheet plus a separate effects sheet). The app now reads which one the lifebar file itself declares as its sprite sheet and loads that one automatically, instead of giving up.
+- Fixed most real-world lifebar files failing to load at all with a parse error. Real lifebar files commonly include content the app doesn't model (embedded decorative animations, free-form credits banners); that content is now correctly ignored instead of blocking the whole file from loading.
 
 ## [0.5.0] - 2026-08-23
 

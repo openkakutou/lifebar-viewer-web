@@ -189,7 +189,7 @@ describe("renderLifebarFolderInput", () => {
     const root = document.createElement("div");
     renderLifebarFolderInput(root, {
       onLoaded: vi.fn(),
-      fileOptions: { readFileText: async () => "not valid" },
+      fileOptions: { readFileText: async () => "[Files]\nnot valid" },
     });
 
     await selectViaPicker(root, [

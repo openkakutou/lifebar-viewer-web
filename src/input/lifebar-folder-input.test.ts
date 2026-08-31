@@ -123,14 +123,14 @@ describe("loadLifebarFromFolderFiles", () => {
     const fightDef = entry("pack/fight.def");
 
     const result = await loadLifebarFromFolderFiles([fightDef], {
-      readFileText: async () => "not a valid line",
+      readFileText: async () => "[Files]\nnot a valid line",
     });
 
     expect(result).toEqual({
       status: "parse-error",
       fileName: "fight.def",
       message:
-        'line 1: expected a "[Section Name]" header or a "key = value" pair, found "not a valid line".',
+        'line 2: expected a "key = value" pair inside section "Files", found "not a valid line".',
     });
   });
 });

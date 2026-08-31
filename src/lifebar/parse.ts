@@ -2,12 +2,16 @@
 // a LifebarDocument. Independent from `lifebar-editor`'s own separate
 // parser for the same format, per roadmap decision 009. See
 // .vibe/decisions/002-folder-only-input-and-warn-on-unrecognized-sections.md
-// for the malformed-vs-unrecognized distinction this implements: any
-// syntactically valid `[Section]`/`key = value` content is structurally
-// well-formed, but only a *recognized* section name (known-sections.ts)
-// ends up in the returned document — an unrecognized one is skipped and
-// reported as a warning instead. A line that is neither blank, a comment,
-// a valid section header, nor a valid `key = value` pair is a parse error.
+// for the malformed-vs-unrecognized distinction this implements: only a
+// *recognized* section name (known-sections.ts) ends up in the returned
+// document — an unrecognized one is skipped and reported as a warning
+// instead. That "skip, don't block" precedent extends to a line's own
+// shape too: a non-blank, non-comment, non-header line that isn't a valid
+// `key = value` pair is a parse error only when it's inside a *recognized*
+// section — real files routinely carry content this app doesn't model at
+// all outside one (embedded MUGEN AIR-style animation blocks, free-form
+// banner/credits text before the first header, …), and that content is
+// quietly ignored rather than blocking the whole file's load.
 import type {
   LifebarDocument,
   LifebarEntry,
@@ -41,7 +45,6 @@ export function parseLifebar(text: string): LifebarParseResult {
   const sections: LifebarSection[] = [];
   const warnings: string[] = [];
   let current: LifebarSection | null = null;
-  let seenAnyHeader = false;
 
   for (let i = 0; i < rawLines.length; i++) {
     const lineNumber = i + 1;
@@ -56,7 +59,6 @@ export function parseLifebar(text: string): LifebarParseResult {
           message: `line ${lineNumber}: malformed section header (missing closing "]").`,
         };
       }
-      seenAnyHeader = true;
       const name = headerMatch[1].trim();
       if (isKnownSectionName(name)) {
         current = { name, entries: [], line: lineNumber };
@@ -70,24 +72,26 @@ export function parseLifebar(text: string): LifebarParseResult {
       continue;
     }
 
+    if (!current) {
+      // Not inside a recognized section — either this content precedes any
+      // header (a free-form banner/credits line, common in hand-authored
+      // files) or belongs to the most recently skipped, unrecognized one
+      // (e.g. a MUGEN "[Begin Action N]" embedded AIR-style animation
+      // block, whose body lines are raw frame data, not "key = value").
+      // Only a *recognized* section's own content is modeled, so anything
+      // else here is quietly ignored rather than blocking the whole file's
+      // load — the same "skip, don't block" precedent as an unrecognized
+      // section itself (see .vibe/decisions/002).
+      continue;
+    }
+
     const entryMatch = line.match(KEY_VALUE);
     const key = entryMatch?.[1].trim();
     if (!entryMatch || !key) {
       return {
         status: "error",
-        message: `line ${lineNumber}: expected a "[Section Name]" header or a "key = value" pair, found "${line}".`,
+        message: `line ${lineNumber}: expected a "key = value" pair inside section "${current.name}", found "${line}".`,
       };
-    }
-
-    if (!current) {
-      if (!seenAnyHeader) {
-        return {
-          status: "error",
-          message: `line ${lineNumber}: content appears before any "[Section Name]" header: "${line}".`,
-        };
-      }
-      // Belongs to the most recently skipped, unrecognized section — ignore it.
-      continue;
     }
 
     const entry: LifebarEntry = {

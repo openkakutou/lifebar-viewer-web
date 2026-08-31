@@ -105,23 +105,61 @@ describe("parseLifebar", () => {
     });
   });
 
-  it("errors on content that appears before any section header", () => {
-    const result = parseLifebar("pos = 0,0\n[Files]");
+  it("ignores content that appears before any section header instead of erroring, the same as an unrecognized section's own body", () => {
+    const result = parseLifebar(
+      "============================================\nCredits banner, no leading semicolon\n[Files]\nfont1 = font.def",
+    );
 
     expect(result).toEqual({
-      status: "error",
-      message:
-        'line 1: content appears before any "[Section Name]" header: "pos = 0,0".',
+      status: "success",
+      document: {
+        sections: [
+          {
+            name: "Files",
+            line: 3,
+            entries: [{ key: "font1", value: "font.def", line: 4 }],
+          },
+        ],
+      },
+      warnings: [],
     });
   });
 
-  it("errors on a line that is neither a section header nor a key/value pair", () => {
+  it("errors on a line that is neither a section header nor a key/value pair inside a recognized section", () => {
     const result = parseLifebar("[Files]\nnot a key value line");
 
     expect(result).toEqual({
       status: "error",
       message:
-        'line 2: expected a "[Section Name]" header or a "key = value" pair, found "not a key value line".',
+        'line 2: expected a "key = value" pair inside section "Files", found "not a key value line".',
     });
+  });
+
+  it("ignores non-key=value body lines inside an unrecognized section instead of erroring — the real MUGEN '[Begin Action N]' embedded animation shape", () => {
+    const text = [
+      "[Files]",
+      "sff = fight.sff",
+      "",
+      "; Gear 1",
+      "[Begin Action 170]",
+      "11,3, 0,0, 1080, , A, 1,1,0",
+      "Interpolate Angle",
+      "11,3, 0,0, 1, , A, 1,1,-359",
+      "",
+      "[P1 Life Bar]",
+      "pos = 27,17",
+    ].join("\n");
+
+    const result = parseLifebar(text);
+
+    expect(result.status).toBe("success");
+    if (result.status !== "success") throw new Error("expected success");
+    expect(result.document.sections.map((section) => section.name)).toEqual([
+      "Files",
+      "P1 Life Bar",
+    ]);
+    expect(result.warnings).toEqual([
+      'line 5: unrecognized section "Begin Action 170" skipped.',
+    ]);
   });
 });
