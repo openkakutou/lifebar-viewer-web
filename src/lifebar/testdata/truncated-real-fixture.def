@@ -1,0 +1,16 @@
+; Deliberately corrupted excerpt of the real Ikemen GO fixture
+; (gms-ikemen-go-fixture.def) — see testdata/README.md for provenance and
+; why this file exists (simulates a truncated/interrupted download, a real
+; failure mode for a file fetched from a folder-based file input).
+;
+[Info]
+localcoord = 320,240
+doubleres = 4
+
+[Files]
+sff = fight.sff
+snd = fight.snd
+common.snd = common.snd
+
+[Combo
+team1.pos = 10,98

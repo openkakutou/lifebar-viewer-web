@@ -1,5 +1,12 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseLifebar } from "./parse.ts";
+
+const testdataDir = path.resolve(import.meta.dirname, "testdata");
+function fixture(name: string): string {
+  return readFileSync(path.join(testdataDir, name), "utf-8");
+}
 
 describe("parseLifebar", () => {
   it("parses a well-formed MUGEN-style lifebar file into recognized sections", () => {
@@ -161,5 +168,162 @@ describe("parseLifebar", () => {
     expect(result.warnings).toEqual([
       'line 5: unrecognized section "Begin Action 170" skipped.',
     ]);
+  });
+});
+
+// Fixture-driven compatibility against real, hand-authored community files
+// (backlog item 006) — every test above uses small synthetic text; these
+// validate the same parser against real MUGEN/Ikemen GO packs, which carry
+// quirks synthetic fixtures don't think to cover. See testdata/README.md
+// for what each fixture is and where it came from.
+//
+// Both real fixtures below currently resolve to the exact same two
+// recognized sections (`Files`, `Combo`) and warn on everything else —
+// this is real, concrete evidence of the compatibility gap tracked by
+// backlog items 010/011 (this app's known-sections patterns assume an old
+// per-player-prefixed naming style, e.g. "P1 Life Bar", that no real file
+// in this fixture set actually uses), not a bug in this test.
+describe("parseLifebar — real-file fixtures (item 006)", () => {
+  it("parses a real classic-MUGEN-convention pack, asserting its actual recognized structure", () => {
+    const result = parseLifebar(fixture("mfj2-classic-mugen-fixture.def"));
+
+    expect(result.status).toBe("success");
+    if (result.status !== "success") throw new Error("expected success");
+
+    expect(result.document.sections.map((section) => section.name)).toEqual([
+      "Files",
+      "Combo",
+    ]);
+
+    const files = result.document.sections[0];
+    expect(files.line).toBe(10);
+    expect(files.entries).toEqual([
+      { key: "sff", value: "sff/fight.sff", line: 11 },
+      { key: "snd", value: "snd/fight.snd", line: 12 },
+      { key: "font1", value: "font/p1power.fnt", line: 13 },
+      { key: "font2", value: "font/p2power.fnt", line: 14 },
+      { key: "font3", value: "font/14x14.fnt", line: 15 },
+      { key: "font4", value: "font/14x14-2.fnt", line: 16 },
+      { key: "font5", value: "font/timer.fnt", line: 17 },
+      { key: "font6", value: "font/counter.fnt", line: 18 },
+      { key: "font7", value: "font/18x18.fnt", line: 19 },
+      { key: "font8", value: "font/18x18-2.fnt", line: 20 },
+      { key: "fightfx.sff", value: "sff/fightfx.sff", line: 21 },
+      { key: "fightfx.air", value: "sff/fightfx.air", line: 22 },
+      { key: "common.snd", value: "snd/common.snd", line: 23 },
+    ]);
+
+    // The Combo family's real position/text entries — concrete evidence
+    // the parser reads actual per-team layout data correctly, not just
+    // that it "didn't throw".
+    const combo = result.document.sections[1];
+    expect(combo.line).toBe(217);
+    expect(combo.entries).toEqual([
+      { key: "team1.pos", value: "60, 172", line: 219 },
+      { key: "team1.start.x", value: "-80", line: 220 },
+      { key: "team1.text.font", value: "6,0", line: 221 },
+      { key: "team1.text.text", value: "%iH", line: 222 },
+      { key: "team1.text.offset", value: "0,0", line: 223 },
+      { key: "team1.text.layerno", value: "2", line: 224 },
+      { key: "team1.displaytime", value: "90", line: 225 },
+      { key: "team2.pos", value: "580, 172", line: 227 },
+      { key: "team2.start.x", value: "720", line: 228 },
+      { key: "team2.text.font", value: "6,0", line: 229 },
+      { key: "team2.text.text", value: "%iH", line: 230 },
+      { key: "team2.text.offset", value: "0,0", line: 231 },
+      { key: "team2.text.layerno", value: "2", line: 232 },
+      { key: "team2.displaytime", value: "90", line: 233 },
+    ]);
+
+    // Every other real section this pack defines — including the ones
+    // that hold this pack's own real position/sprite data for the life
+    // bar, power bar and win-icon elements — is a currently-unrecognized
+    // name under this app's still-MUGEN-classic-only patterns.
+    expect(result.warnings).toEqual([
+      'line 3: unrecognized section "Info" skipped.',
+      'line 28: unrecognized section "Lifebar" skipped.',
+      'line 104: unrecognized section "Begin Action 111" skipped.',
+      'line 107: unrecognized section "Begin Action 112" skipped.',
+      'line 111: unrecognized section "Begin Action 121" skipped.',
+      'line 114: unrecognized section "Begin Action 122" skipped.',
+      'line 118: unrecognized section "Begin Action 131" skipped.',
+      'line 121: unrecognized section "Begin Action 132" skipped.',
+      'line 127: unrecognized section "Powerbar" skipped.',
+      'line 238: unrecognized section "WinIcon" skipped.',
+    ]);
+  });
+
+  it("parses a real Ikemen GO pack with genuine GO-only extensions, asserting its actual recognized structure", () => {
+    const result = parseLifebar(fixture("gms-ikemen-go-fixture.def"));
+
+    expect(result.status).toBe("success");
+    if (result.status !== "success") throw new Error("expected success");
+
+    expect(result.document.sections.map((section) => section.name)).toEqual([
+      "Files",
+      "Combo",
+    ]);
+
+    const files = result.document.sections[0];
+    expect(files.entries).toEqual([
+      { key: "sff", value: "fight.sff", line: 8 },
+      { key: "snd", value: "fight.snd", line: 9 },
+      { key: "font1", value: "font/font2.fnt", line: 10 },
+      { key: "font2", value: "font/timer.fnt", line: 11 },
+      { key: "font3", value: "font/round.fnt", line: 12 },
+      { key: "font4", value: "font/combo.fnt", line: 13 },
+      { key: "font5", value: "font/wincount.fnt", line: 14 },
+      { key: "fightfx.sff", value: "fightfx.sff", line: 15 },
+      { key: "fightfx.air", value: "fightfx.air", line: 16 },
+      { key: "common.snd", value: "common.snd", line: 17 },
+      // A real inline `; comment` after the value is stripped like any
+      // other — this pack's own "new ikemen fx" note doesn't leak in.
+      { key: "fx1", value: "gofx.def", line: 18 },
+    ]);
+
+    // Spot-check real per-team position/formatting entries rather than
+    // the full 30-entry array — still real values, not synthetic ones.
+    const combo = result.document.sections[1];
+    expect(combo.line).toBe(214);
+    expect(combo.entries).toHaveLength(30);
+    expect(combo.entries[0]).toEqual({
+      key: "team1.pos",
+      value: "10,98",
+      line: 215,
+    });
+    expect(combo.entries).toContainEqual({
+      key: "team2.pos",
+      value: "309,98",
+      line: 231,
+    });
+    expect(combo.entries).toContainEqual({
+      key: "format.decimal.separator",
+      value: ".",
+      line: 249,
+    });
+
+    // Genuine Ikemen-GO-only sections (the source pack's own comments
+    // label them "Ikemen feature") are real evidence this app's current
+    // patterns don't yet cover them — same documented gap as the classic
+    // pack above, items 010/011 close it.
+    expect(result.warnings).toEqual([
+      'line 3: unrecognized section "Info" skipped.',
+      'line 21: unrecognized section "FightFx" skipped.',
+      'line 25: unrecognized section "Lifebar" skipped.',
+      'line 68: unrecognized section "Simul_3P Lifebar" skipped.',
+      'line 175: unrecognized section "Powerbar" skipped.',
+      'line 253: unrecognized section "WinIcon" skipped.',
+      'line 268: unrecognized section "Guardbar" skipped.',
+      'line 299: unrecognized section "Stunbar" skipped.',
+    ]);
+  });
+
+  it("errors on a real-world fixture deliberately truncated mid-section-header, the same as a corrupted/interrupted download", () => {
+    const result = parseLifebar(fixture("truncated-real-fixture.def"));
+
+    expect(result).toEqual({
+      status: "error",
+      message: 'line 15: malformed section header (missing closing "]").',
+    });
   });
 });

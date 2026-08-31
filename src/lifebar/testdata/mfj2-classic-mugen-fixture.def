@@ -1,0 +1,326 @@
+; Trimmed excerpt of a real MUGEN-convention lifebar pack — see testdata/README.md for provenance.
+;
+[Info]
+;localcoord = 1280,720
+localcoord = 640,480
+
+;==================================================
+; ���C�t�o�[�Ɏg�p����t�@�C���̐ݒ�
+;==================================================
+[Files]
+sff			= sff/fight.sff			;�X�v���C�g�t�@�C��
+snd			= snd/fight.snd			;�T�E���h�t�@�C��
+font1			= font/p1power.fnt		;�t�H���g�t�@�C���P
+font2			= font/p2power.fnt		;�t�H���g�t�@�C���Q
+font3			= font/14x14.fnt		;�t�H���g�t�@�C���R
+font4			= font/14x14-2.fnt		;�t�H���g�t�@�C���S
+font5			= font/timer.fnt		;�t�H���g�t�@�C���T
+font6			= font/counter.fnt		;�t�H���g�t�@�C���U
+font7			= font/18x18.fnt		;�t�H���g�t�@�C���V
+font8			= font/18x18-2.fnt		;�t�H���g�t�@�C���W
+fightfx.sff		= sff/fightfx.sff		;�G�t�F�N�g�X�v���C�g�t�@�C��
+fightfx.air		= sff/fightfx.air		;�G�t�F�N�g�A�j���[�V����
+common.snd		= snd/common.snd		;�퓬���̌��ʉ�
+
+;==================================================
+; �V���O�����[�h���̃��C�t�o�[�̐ݒ�
+;==================================================
+[Lifebar]
+;�o�P���C�t�o�[�ݒ�
+p1.pos			= 0,20					;�o�P���C�t�o�[�̕\���ʒu
+
+p1.bg0.spr		= 10,0					;�o�P���C�t�o�[�w�i�摜�@
+p1.bg0.offset		= 0,0					;�@�̕\���ʒu�ݒ�
+p1.bg0.facing		= 1					;�@�̐������]�ݒ�
+p1.bg0.layerno		= 2					;�@�̃��C���[�ݒ�
+p1.bg0.scale		= 1,1				;�@�̃X�P�[���ݒ�
+
+p1.bg1.anim 		= 111					;�o�P���C�t�o�[�w�i�摜�A
+p1.bg1.offset		= 2,6					;�A�̕\���ʒu�ݒ�
+p1.bg1.facing		= 1					;�A�̐������]�ݒ�
+p1.bg1.layerno		= 2					;�A�̃��C���[�ݒ�
+p1.bg1.scale		= 1,1				;�A�̃X�P�[���ݒ�
+
+p1.bg2.anim		= 121					;�o�P���C�t�o�[�w�i�摜�B
+p1.bg2.offset		= 66,10					;�B�̕\���ʒu�ݒ�
+p1.bg2.facing		= 1					;�B�̐������]�ݒ�
+p1.bg2.layerno		= 1					;�B�̃��C���[�ݒ�
+p1.bg2.scale		= 1,1				;�B�̃X�P�[���ݒ�
+
+p1.mid.anim		= 131					;�o�P���C�t�Q�[�W�����摜
+p1.mid.offset		= 66,10					;�w��摜�̕\���ʒu�ݒ�
+p1.mid.facing		= 1					;�w��摜�̐������]�ݒ�
+p1.mid.layerno		= 2					;�w��摜�̃��C���[�ݒ�
+p1.mid.scale		= 1,1				;�w��摜�̃X�P�[���ݒ�
+
+p1.front.spr		= 14,0					;�o�P���C�t�Q�[�W�摜
+p1.front.offset		= 66,10					;�w��摜�̕\���ʒu�ݒ�
+p1.front.facing		= 1					;�w��摜�̐������]�ݒ�
+p1.front.layerno	= 2					;�w��摜�̃��C���[�ݒ�
+p1.front.scale		= 1,1				;�w��摜�̃X�P�[���ݒ�
+
+p1.range.x 		= 283,66				;�Q�[�W�̕\���͈͎w��i�J�n�A�I���j
+
+;�o�Q���C�t�o�[�ݒ�
+p2.pos			= 320,20				;�o�Q���C�t�o�[�̕\���ʒu
+
+p2.bg0.spr 		= 10,1					;�o�Q���C�t�o�[�w�i�摜�@
+p2.bg0.offset		= 0,0					;�@�̕\���ʒu�ݒ�
+p2.bg0.facing 		= 1					;�@�̐������]�ݒ�
+p2.bg0.layerno		= 2					;�@�̃��C���[�ݒ�
+p2.bg0.scale		= 1,1				;�@�̃X�P�[���ݒ�
+
+p2.bg1.anim		= 112					;�o�Q���C�t�o�[�w�i�摜�A
+p2.bg1.offset		= 32,6					;�A�̕\���ʒu�ݒ�
+p2.bg1.facing		= 1					;�A�̐������]�ݒ�
+p2.bg1.layerno		= 2					;�A�̃��C���[�ݒ�
+p2.bg1.scale		= 1,1				;�A�̃X�P�[���ݒ�
+
+p2.bg2.anim		= 122					;�o�Q���C�t�o�[�w�i�摜�B
+p2.bg2.offset		= 36,10					;�B�̕\���ʒu�ݒ�
+p2.bg2.facing		= 1					;�B�̐������]�ݒ�
+p2.bg2.layerno		= 1					;�B�̃��C���[�ݒ�
+p2.bg2.scale		= 1,1				;�B�̃X�P�[���ݒ�
+
+p2.mid.anim		= 132					;�o�Q���C�t�Q�[�W�����摜
+p2.mid.offset		= 36,10					;�w��摜�̕\���ʒu�ݒ�
+p2.mid.facing		= 1					;�w��摜�̐������]�ݒ�
+p2.mid.layerno		= 2					;�w��摜�̃��C���[�ݒ�
+p2.mid.scale		= 1,1				;�w��摜�̃X�P�[���ݒ�
+
+p2.front.spr		= 14,1					;�o�Q���C�t�Q�[�W�摜
+p2.front.offset		= 36,10					;�w��摜�̕\���ʒu�ݒ�
+p2.front.facing		= 1					;�w��摜�̐������]�ݒ�
+p2.front.layerno	= 2					;�w��摜�̃��C���[�ݒ�
+p2.front.scale		= 1,1				;�w��摜�̃X�P�[���ݒ�
+
+p2.range.x		= 36,254				;�Q�[�W�̕\���͈͎w��i�J�n�A�I���j
+
+;--------------------------------------------------
+; �V���O�����[�h���̃��C�t�o�[�A�j���[�V�����ݒ�
+;--------------------------------------------------
+
+;���C�t�o�[�g��
+[Begin Action 111] 
+11,0, 0,0, 1, , S
+
+[Begin Action 112] 
+11,1, 0,0, 1, , S
+
+;���C�t�o�[�o�b�N�O���E���h
+[Begin Action 121] 
+12,0, 0,0, 1, , S
+
+[Begin Action 122] 
+12,1, 0,0, 1, , S
+
+;���C�t�o�[�~�h���a�f
+[Begin Action 131] 
+13,0, 0,0, 1, , A1
+
+[Begin Action 132] 
+13,1, 0,0, 1, , A1
+
+;==================================================
+; �^�b�O���[�h���̃��C�t�o�[�̐ݒ�
+;==================================================
+[Powerbar]
+;�o�P�p���[�o�[�ݒ�
+p1.pos			= 66,60					;�o�P�p���[�o�[�̕\���ʒu
+
+p1.bg0.anim		= 301					;�o�P�p���[�o�[�w�i�摜�@
+p1.bg0.offset		= 0,0					;�@�̕\���ʒu�ݒ�
+p1.bg0.facing		= 1					;�@�̐������]�ݒ�
+p1.bg0.layerno		= 1					;�@�̃��C���[�ݒ�
+p1.bg0.scale		= 1,1				;�@�̃X�P�[���ݒ�
+
+;p1.bg1.spr		= 					;�o�P�p���[�o�[�w�i�摜�A
+;p1.bg1.offset		= 					;�A�̕\���ʒu�ݒ�
+;p1.bg1.facing		= 					;�A�̐������]�ݒ�
+;p1.bg1.layerno		= 					;�A�̃��C���[�ݒ�
+;p1.bg1.scale		= 					;�A�̃X�P�[���ݒ�
+
+;p1.bg2.spr		= 					;�o�P�p���[�o�[�w�i�摜�B
+;p1.bg2.offset		= 					;�B�̕\���ʒu�ݒ�
+;p1.bg2.facing		= 					;�B�̐������]�ݒ�
+;p1.bg2.layerno		= 					;�B�̃��C���[�ݒ�
+;p1.bg2.scale		= 					;�B�̃X�P�[���ݒ�
+
+;p1.mid.spr		= 					;�o�P�p���[�Q�[�W�����摜
+;p1.mid.offset		= 					;�w��摜�̕\���ʒu�ݒ�
+;p1.mid.facing		= 					;�w��摜�̐������]�ݒ�
+;p1.mid.layerno		= 					;�w��摜�̃��C���[�ݒ�
+;p1.mid.scale		= 					;�w��摜�̃X�P�[���ݒ�
+
+p1.front.spr		= 31,0					;�o�P�p���[�Q�[�W�摜
+p1.front.offset		= 36,0					;�w��摜�̕\���ʒu�ݒ�
+p1.front.facing		= 1					;�w��摜�̐������]�ݒ�
+p1.front.layerno	= 2					;�w��摜�̃��C���[�ݒ�
+p1.front.scale		= 1,1				;�w��摜�̃X�P�[���ݒ�
+
+p1.range.x		= 204,36				;�Q�[�W�̕\���͈͎w��i�J�n�A�I���j
+
+p1.counter.font		= 1,0,0					;�o�P�p���[���x���p�t�H���g
+p1.counter.offset	= -1,8					;�o�P�p���[���x���\���ʒu
+p1.counter.layerno	= 2
+p1.counter.scale        = 1,1					;�o�P�p���[���x�����C���[�ݒ�
+
+;�o�Q�p���[�o�[�ݒ�
+p2.pos			= 370,60				;�o�Q�p���[�o�[�̕\���ʒu
+
+p2.bg0.anim		= 302					;�o�Q�p���[�o�[�w�i�摜�@
+p2.bg0.offset		= 0,0					;�@�̕\���ʒu�ݒ�
+p2.bg0.facing		= 1					;�@�̐������]�ݒ�
+p2.bg0.layerno		= 1					;�@�̃��C���[�ݒ�
+p2.bg0.scale		= 1,1				;�@�̃X�P�[���ݒ�
+
+;p2.bg1.spr		= 					;�o�Q�p���[�o�[�w�i�摜�A
+;p2.bg1.offset		= 					;�A�̕\���ʒu�ݒ�
+;p2.bg1.facing		= 					;�A�̐������]�ݒ�
+;p2.bg1.layerno		= 					;�A�̃��C���[�ݒ�
+;p2.bg1.scale		= 					;�A�̃X�P�[���ݒ�
+
+;p2.bg2.spr		= 					;�o�Q�p���[�o�[�w�i�摜�B
+;p2.bg2.offset		= 					;�B�̕\���ʒu�ݒ�
+;p2.bg2.facing		= 					;�B�̐������]�ݒ�
+;p2.bg2.layerno		= 					;�B�̃��C���[�ݒ�
+;p2.bg2.scale		= 					;�B�̃X�P�[���ݒ�
+
+;p2.mid.spr		= 					;�o�Q�p���[�Q�[�W�����摜
+;p2.mid.offset		= 					;�w��摜�̕\���ʒu�ݒ�
+;p2.mid.facing		= 					;�w��摜�̐������]�ݒ�
+;p2.mid.layerno		= 					;�w��摜�̃��C���[�ݒ�
+;p2.mid.scale		= 					;�w��摜�̃X�P�[���ݒ�
+
+p2.front.spr		= 31,1					;�o�Q�p���[�Q�[�W�摜
+p2.front.offset		= 0,0					;�w��摜�̕\���ʒu�ݒ�
+p2.front.facing		= 1					;�w��摜�̐������]�ݒ�
+p2.front.layerno	= 2					;�w��摜�̃��C���[�ݒ�
+p2.front.scale		= 1,1				;�w��摜�̃X�P�[���ݒ�
+
+p2.range.x		= 0,168					;�Q�[�W�̕\���͈͎w��i�J�n�A�I���j
+
+p2.counter.font		= 2,0,0					;�o�Q�p���[���x���p�t�H���g
+p2.counter.offset	= 177,8					;�o�Q�p���[���x���\���ʒu
+p2.counter.layerno	= 2					;�o�Q�p���[���x�����C���[�ݒ�
+
+;���x���T�E���h
+level1.snd		= 21,0					;���x���P�T�E���h
+level2.snd		= 21,0					;���x���Q�T�E���h
+level3.snd		= 21,0					;���x���R�T�E���h
+
+;--------------------------------------------------
+; �p���[�o�[�A�j���[�V�����ݒ�
+;--------------------------------------------------
+
+;�p���[�o�[�o�b�N�O���E���h
+[Combo]
+
+team1.pos = 60, 172
+team1.start.x = -80
+team1.text.font = 6,0
+team1.text.text = %iH
+team1.text.offset = 0,0
+team1.text.layerno = 2
+team1.displaytime = 90
+
+team2.pos = 580, 172
+team2.start.x = 720
+team2.text.font = 6,0
+team2.text.text = %iH
+team2.text.offset = 0,0
+team2.text.layerno = 2
+team2.displaytime = 90
+
+;==================================================
+; ���E���h�̐ݒ�
+;==================================================
+[WinIcon]
+p1.pos			= 282,80				;�o�P�v�����\���ʒu
+p2.pos			= 350,80				;�o�Q�v�����\���ʒu
+
+p1.iconoffset		= -10,0					;�o�P�v�����A�C�R���̕\���ʒu
+p2.iconoffset		= 10,0					;�o�Q�v�����A�C�R���̕\���ʒu
+
+p1.counter.font		= 7,0,-1				;�o�P�v�����J�E���^�̃t�H���g�ݒ�
+p1.counter.offset	= 8,18					;�o�P�v�����J�E���^�̕\���ʒu�ݒ�
+p1.counter.layerno	= 2					;�o�P�v�����J�E���^�̃��C���[�ݒ�
+
+p2.counter.font		= 8,0,1					;�o�P�v�����J�E���^�̃t�H���g�ݒ�
+p2.counter.offset	= -2,18					;�o�P�v�����J�E���^�̕\���ʒu�ݒ�
+p2.counter.layerno	= 2					;�o�P�v�����J�E���^�̃��C���[�ݒ�
+
+;�ʏ�Z�j�n�̃A�C�R��
+p1.n.spr		= 80,0
+p1.n.layerno		= 2
+p1.n.scale		= 1,1
+p2.n.spr		= 80,1
+p2.n.layerno		= 2
+p2.n.scale		= 1,1
+
+;�K�E�Z�j�n�̃A�C�R��
+p1.s.spr		= 80,0
+p1.s.layerno		= 2
+p1.s.scale		= 1,1
+p2.s.spr		= 80,1
+p2.s.layerno		= 2
+p2.s.scale		= 1,1
+
+;���K�E�Z�j�n�̃A�C�R��
+p1.h.spr		= 80,0
+p1.h.layerno		= 2
+p1.h.scale		= 1,1
+p2.h.spr		= 80,1
+p2.h.layerno		= 2
+p2.h.scale		= 1,1
+
+;�ʏ퓊���j�n�̃A�C�R��
+p1.throw.spr		= 80,0
+p1.throw.layerno	= 2
+p1.throw.scale		= 1,1
+p2.throw.spr		= 80,1
+p2.throw.layerno	= 2
+p2.throw.scale		= 1,1
+
+;���j�n���̃A�C�R��
+p1.c.spr		= 80,0
+p1.c.layerno		= 2
+p1.c.scale		= 1,1
+p2.c.spr		= 80,1
+p2.c.layerno		= 2
+p2.c.scale		= 1,1
+
+;�^�C���I�[�o�[�������̃A�C�R��
+p1.t.spr		= 80,0
+p1.t.layerno		= 2
+p1.t.scale		= 1,1
+p2.t.spr		= 80,1
+p2.t.layerno		= 2
+p2.t.scale		= 1,1
+
+;����̎����j�n�̃A�C�R��
+p1.suicide.spr		= 80,0
+p1.suicide.layerno	= 2
+p1.suicide.scale	= 1,1
+p2.suicide.spr		= 80,1
+p2.suicide.layerno	= 2
+p2.suicide.scale	= 1,1
+
+;�`�[�����C�g�ɂ��j�n�̃A�C�R��
+p1.teammate.spr		= 80,0
+p1.teammate.layerno	= 2
+p1.teammate.scale	= 1,1
+p2.teammate.spr		= 80,1
+p2.teammate.layerno	= 2
+p2.teammate.scale	= 1,1
+
+;�p�[�t�F�N�g�����̃A�C�R��
+p1.perfect.spr		= 80,0
+p1.perfect.layerno	= 2
+p1.perfect.scale	= 1,1
+p2.perfect.spr		= 80,1
+p2.perfect.layerno	= 2
+p2.perfect.scale	= 1,1
+
+;�A�C�R���̍ő�\����
+useiconupto = 4

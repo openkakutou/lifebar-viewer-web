@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Users can now simulate life, power, and combo count values with sliders (paired with numeric inputs for precise entry) to see how a loaded lifebar's elements react, without a real match running. A slider only appears for a value the loaded lifebar actually defines, and out-of-range or invalid entries clamp to a valid value instead of showing a broken state.
+- The lifebar parser is now validated against real MUGEN and Ikemen GO community lifebar files, not just hand-written test data — confirming it correctly reads a real file's actual position and text data, gracefully reports the real-world sections it doesn't yet recognize instead of failing, and degrades to a clear error rather than crashing on a truncated or corrupted file.
 
 ### Fixed
 
