@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-01
+
 ### Added
 
 - Users can now simulate life, power, and combo count values with sliders (paired with numeric inputs for precise entry) to see how a loaded lifebar's elements react, without a real match running. A slider only appears for a value the loaded lifebar actually defines, and out-of-range or invalid entries clamp to a valid value instead of showing a broken state.
@@ -41,7 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The app now uses the shared OpenKakutou design system for its layout and styling, with a visible error message shown instead of a blank page if the design assets fail to load.
 
-[Unreleased]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.2.0...v0.3.0

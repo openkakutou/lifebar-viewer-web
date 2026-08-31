@@ -12,7 +12,7 @@ npm run test:watch   # watch mode
 Vitest, `jsdom` environment. Test files are co-located with the source they
 test (`*.test.ts` next to the file it covers).
 
-## Parser tests are pure and fixture-free
+## Parser tests: inline synthetic text, plus a real-file fixture corpus
 
 `src/lifebar/parse.test.ts` and `src/lifebar/known-sections.test.ts`
 exercise the parser directly against inline text fixtures (no external
@@ -20,6 +20,17 @@ exercise the parser directly against inline text fixtures (no external
 test suite pins exact section/entry output (including line numbers) for
 well-formed input, and exact line-numbered error messages for malformed
 input, rather than only asserting "it didn't throw."
+
+`parse.test.ts` additionally runs the same parser against real, trimmed
+MUGEN/Ikemen GO community lifebar files under `src/lifebar/testdata/`
+(read via Node `fs`, same pattern as the WASM bridge's fixtures below) —
+real files carry quirks a hand-typed fixture doesn't think to cover (mixed
+CRLF/LF line endings, already-corrupted comment encoding, a real
+Ikemen-GO-only section). One fixture is deliberately truncated
+mid-section-header to prove the parser's existing error path handles a
+real-world failure mode (an interrupted folder read), not just a
+hand-crafted one. See `src/lifebar/testdata/README.md` for what each real
+fixture is and where it came from.
 
 ## Folder gathering is tested against plain mock objects, not real jsdom APIs
 
