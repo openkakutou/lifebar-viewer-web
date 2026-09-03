@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-09-03
+
 ### Fixed
 
 - The folder-picker's buttons and the live value simulation sliders now use the shared design system's styled components instead of unstyled native browser controls, matching the rest of the app's look. The candidate-file selection radios still use native controls for now — this kit doesn't have a styled equivalent yet.
@@ -47,7 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The app now uses the shared OpenKakutou design system for its layout and styling, with a visible error message shown instead of a blank page if the design assets fail to load.
 
-[Unreleased]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.6.1...HEAD
+[0.6.1]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.6.0...v0.6.1
 [0.6.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.3.0...v0.4.0
