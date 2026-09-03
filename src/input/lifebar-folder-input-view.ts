@@ -3,9 +3,13 @@
 // picker plus a drag-and-drop zone), not a single-file picker — see
 // .vibe/decisions/002-folder-only-input-and-warn-on-unrecognized-sections.md.
 // Every interactive control is a real native element (file input, radio
-// inputs, buttons) rather than a custom `role="button"` div, so keyboard
-// operability comes for free from the browser, with no bespoke keydown
-// handling needed the way a fully synthetic drop zone would require.
+// inputs) or `web-ui-kit`'s own styled equivalent (`<wuik-button>`) rather
+// than a custom `role="button"` div, so keyboard operability comes for
+// free from the browser, with no bespoke keydown handling needed the way
+// a fully synthetic drop zone would require. The candidate-file radios
+// stay native `<input type="radio">` — this kit has no radio-group
+// component yet (org-wide UX audit, backlog item 012; tracked there as
+// `web-ui-kit` backlog item 014).
 import type { LifebarDocument } from "../lifebar/document.ts";
 import type { GatheredFile } from "./folder-entries.ts";
 import {
@@ -156,8 +160,8 @@ export function renderLifebarFolderInput(
   status.setAttribute("role", "status");
   status.setAttribute("aria-live", "polite");
 
-  const resetButton = document.createElement("button");
-  resetButton.type = "button";
+  const resetButton = document.createElement("wuik-button");
+  resetButton.setAttribute("variant", "secondary");
   resetButton.className = "lifebar-folder-input__reset";
   resetButton.dataset.action = "reset";
   resetButton.textContent = "Choose a different folder";
@@ -199,11 +203,10 @@ export function renderLifebarFolderInput(
     group.setAttribute("role", "radiogroup");
     group.setAttribute("aria-label", "Candidate lifebar files");
 
-    const confirmButton = document.createElement("button");
-    confirmButton.type = "button";
+    const confirmButton = document.createElement("wuik-button");
     confirmButton.dataset.action = "confirm-selection";
     confirmButton.textContent = "Load selected file";
-    confirmButton.disabled = true;
+    confirmButton.setAttribute("disabled", "");
 
     candidates.forEach((candidate, index) => {
       const optionLabel = document.createElement("label");
@@ -217,7 +220,7 @@ export function renderLifebarFolderInput(
       // the same workaround `character-viewer-web`'s animation player uses.
       input.addEventListener("click", () => {
         selectedIndex = index;
-        confirmButton.disabled = false;
+        confirmButton.removeAttribute("disabled");
       });
       optionLabel.append(
         input,

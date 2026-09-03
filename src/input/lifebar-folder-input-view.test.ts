@@ -153,10 +153,15 @@ describe("renderLifebarFolderInput", () => {
     expect(root.textContent).toContain("pack/alt/fight2.def");
     expect(onLoaded).not.toHaveBeenCalled();
 
+    const confirmButton = root.querySelector(
+      "wuik-button[data-action='confirm-selection']",
+    ) as HTMLElement;
+    expect(confirmButton.hasAttribute("disabled")).toBe(true);
+
     (options[1] as HTMLInputElement).click();
-    root
-      .querySelector("button[data-action='confirm-selection']")
-      ?.dispatchEvent(new Event("click", { bubbles: true }));
+    expect(confirmButton.hasAttribute("disabled")).toBe(false);
+
+    confirmButton.dispatchEvent(new Event("click", { bubbles: true }));
     await vi.waitFor(() => {
       expect(onLoaded).toHaveBeenCalled();
     });
@@ -348,8 +353,8 @@ describe("renderLifebarFolderInput", () => {
     ]);
 
     const resetButton = root.querySelector(
-      "button[data-action='reset']",
-    ) as HTMLButtonElement;
+      "wuik-button[data-action='reset']",
+    ) as HTMLElement;
     expect(resetButton).not.toBeNull();
 
     resetButton.click();

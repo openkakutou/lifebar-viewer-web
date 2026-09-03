@@ -219,6 +219,11 @@
   font-size: var(--wuik-font-size-sm);
 }
 
+.simulation-controls__row wuik-slider {
+  flex: 1;
+  min-width: 8em;
+}
+
 .simulation-controls__row input[type="number"] {
   width: 4.5em;
 }

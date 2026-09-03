@@ -4,6 +4,15 @@
 // diagnostic value and fails keyboard-only operability, so every slot gets
 // both, kept in sync — see plan consultation notes in
 // .vibe/decisions/005-simulation-values-shown-as-diagnostic-overlay-not-authentic-rendering.md.
+//
+// The slider itself is `web-ui-kit`'s `<wuik-slider>` (org-wide UX audit,
+// backlog item 012) instead of a bare native `<input type="range">`, so it
+// picks up the shared design tokens automatically. Its min/max/step/value
+// are set as attributes (not the native `<input>` IDL properties, which
+// this component doesn't expose), and it is driven through its documented
+// `wuik-input` event rather than a native "input" listener — the numeric
+// input pairing stays a plain native `<input type="number">`, since this
+// kit has no equivalent component for it yet.
 import type { LifebarDocument } from "../lifebar/document.ts";
 import {
   type SimulatableSlot,
@@ -78,12 +87,12 @@ function buildSlotRow(
   label.textContent = slot.label;
   row.appendChild(label);
 
-  const range = document.createElement("input");
-  range.type = "range";
-  range.min = String(min);
-  range.max = String(max);
-  range.step = "1";
-  range.value = String(startValue);
+  const range = document.createElement("wuik-slider");
+  range.setAttribute("min", String(min));
+  range.setAttribute("max", String(max));
+  range.setAttribute("step", "1");
+  range.setAttribute("value", String(startValue));
+  range.setAttribute("label", slot.label);
   range.dataset.slotKey = slot.key;
   row.appendChild(range);
 
@@ -98,12 +107,14 @@ function buildSlotRow(
 
   function commit(raw: number): void {
     const clamped = clampSimulatedValue(slot.kind, raw);
-    range.value = String(clamped);
+    range.setAttribute("value", String(clamped));
     number.value = String(clamped);
     onChange(slot.key, clamped);
   }
 
-  range.addEventListener("input", () => commit(Number(range.value)));
+  range.addEventListener("wuik-input", (event) =>
+    commit(Number((event as CustomEvent<{ value: number }>).detail.value)),
+  );
   number.addEventListener("input", () => commit(Number(number.value)));
 
   return row;

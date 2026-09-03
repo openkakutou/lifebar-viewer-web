@@ -109,6 +109,10 @@ with no simulated value gets no overlay, a non-simulatable section gets no
 overlay even when other values are set, and the simulation overlay and the
 selection overlay stay independently present on the same element.
 
+## A `web-ui-kit` component used in application code is tested via its documented event contract, not its internals
+
+`simulation-controls.ts`'s slider is `web-ui-kit`'s `<wuik-slider>` (org-wide UX audit, backlog item `012`). Its unit test file never imports `@openkakutou/web-ui-kit`, so the real component class isn't registered under jsdom in that file — the same reason `elements-panel.test.ts` never sees real `<wuik-panel>` behavior either. `simulation-controls.test.ts` therefore asserts against the element's `min`/`max`/`value` **attributes** (not the native `<input>` IDL properties this component doesn't expose) and drives it by dispatching the component's own documented `wuik-input` custom event directly, rather than a native `"input"` event — real slider behavior (dragging, keyboard operability) is confirmed once with a real-browser Playwright pass instead, the same split the rest of this file documents for every other component.
+
 ## Beyond the test suite: real-browser verification
 
 Passing tests are not treated as proof the folder input works. It was

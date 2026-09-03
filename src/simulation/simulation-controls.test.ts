@@ -56,29 +56,26 @@ describe("renderSimulationControls", () => {
 
     renderSimulationControls(root, document_, values, () => {});
 
-    const range = root.querySelector<HTMLInputElement>(
-      '[data-slot-key="life-0"][type="range"]',
-    );
+    const range = root.querySelector('wuik-slider[data-slot-key="life-0"]');
     const number = root.querySelector<HTMLInputElement>(
       '[data-slot-key="life-0"][type="number"]',
     );
-    expect(range?.value).toBe("42");
+    expect(range?.getAttribute("value")).toBe("42");
     expect(number?.value).toBe("42");
   });
 
-  it("moving the slider calls onChange with the clamped value, live (on input, not just change)", () => {
+  it("moving the slider calls onChange with the clamped value, live (on wuik-input, not just wuik-change)", () => {
     const root = document.createElement("div");
     const document_ = doc(["P1 Life Bar"]);
     const onChange = vi.fn();
 
     renderSimulationControls(root, document_, valuesFor(document_), onChange);
 
-    const range = root.querySelector<HTMLInputElement>(
-      '[data-slot-key="life-0"][type="range"]',
+    const range = root.querySelector('wuik-slider[data-slot-key="life-0"]');
+    if (!range) throw new Error("no slider");
+    range.dispatchEvent(
+      new CustomEvent("wuik-input", { detail: { value: 30 } }),
     );
-    if (!range) throw new Error("no range input");
-    range.value = "30";
-    range.dispatchEvent(new Event("input"));
 
     expect(onChange).toHaveBeenCalledWith("life-0", 30);
   });
@@ -124,9 +121,7 @@ describe("renderSimulationControls", () => {
 
     renderSimulationControls(root, document_, valuesFor(document_), () => {});
 
-    const range = root.querySelector<HTMLInputElement>(
-      '[data-slot-key="combo-0"][type="range"]',
-    );
-    expect(range?.max).toBe("50");
+    const range = root.querySelector('wuik-slider[data-slot-key="combo-0"]');
+    expect(range?.getAttribute("max")).toBe("50");
   });
 });

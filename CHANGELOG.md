@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The folder-picker's buttons and the live value simulation sliders now use the shared design system's styled components instead of unstyled native browser controls, matching the rest of the app's look. The candidate-file selection radios still use native controls for now — this kit doesn't have a styled equivalent yet.
+
 ## [0.6.0] - 2026-09-01
 
 ### Added
