@@ -1,0 +1,175 @@
+; Definition of fight screen
+
+;=======================================================================
+; V-HD Bars Lifebars
+;=======================================================================
+
+;-----------------------------------------------------------
+; Ikemen feature
+[Info]
+localcoord = 1280,720
+
+;-----------------------------------------------------------
+
+[Files]
+sff 			= fightHD.sff
+snd 			= fightHD.snd
+font1 			= font/VPHD_Power_Blue.def
+font5 			= font/VPHD_Time.def
+fightfx.sff 		= fightfx.sff
+fightfx.air 		= fightfx.air
+common.snd		= common.snd
+
+;-----------------------------------------------------------
+[FightFx]
+scale = 1
+
+;====================================================================
+
+[Lifebar]
+;Player 1
+;----------------------------------
+p1.pos    		= 0,0
+;-------
+
+p1.bg0.anim 		= 170
+p1.bg0.offset 		= 640,78;75
+p1.bg0.layerno 		= 0
+
+;Player 2
+;-----------------------------------
+p2.pos    		= 0,0
+
+; Gear 1
+[Begin Action 170]
+11,3, 0,0, 1080, , A, 1,1,0
+Interpolate Angle
+11,3, 0,0, 1, , A, 1,1,-359
+
+[Simul Lifebar]
+;Player 1
+;----------------------------------
+p1.pos    		= 0,0
+;-------
+
+p1.bg0.anim 		= 170
+p1.bg0.offset 		= 640,75
+p1.bg0.layerno 		= 0
+
+[Turns Lifebar]
+;Player 1
+;----------------------------------
+p1.pos    		= 0,0
+;-------
+
+p1.bg0.anim 		= 170
+p1.bg0.offset 		= 640,75
+p1.bg0.layerno 		= 0
+
+[Powerbar]
+;Player 1
+p1.pos    		= 0,0
+p1.bg0.anim 		= -1213
+p1.bg0.offset 		= 350,40
+
+p1.bg1.anim 		= -1214
+p1.bg1.scale 		= .75,.75
+p1.bg1.offset 		= 400,40
+p1.bg1.layerno 		= 0
+
+; Gear 3
+[Begin Action 220]
+11,10, 0,0, 60, , A, 1,1,0
+Interpolate Angle
+11,10, 0,0, 1, , A, 1,1,-359
+
+[Face]
+;Player 1
+p1.pos    		= 0,0
+p1.bg.spr 		= ;11,2
+p1.face.spr 		= 9000,0
+p1.face.facing 		= 1
+p1.face.offset 		= 40,17
+p1.face.scale 		= 0.75,0.75
+
+[Simul Face]
+;Player 1
+p1.pos    		= 0,0
+p1.bg.spr 		= ;11,6
+p1.face.spr 		= 9000,0
+p1.face.facing 		= 1
+p1.face.offset 		= 14,36
+p1.face.scale 		= .75,.75
+
+[Turns Face]
+;Player 1
+p1.pos    		= 0,0
+p1.bg.spr 		= ;11,2
+p1.face.spr 		= 9000,0
+p1.face.facing 		= 1
+p1.face.offset 		= 40,18
+
+[Name]
+p1.pos 			= 139,64
+p1.name.font 		= 3,0, 1
+p2.pos 			= 1141,64
+p2.name.font 		= 6,0, -1
+
+[Simul Name]
+p1.pos 			= 132,43
+p1.name.font 		= 3,0, 1
+p2.pos 			= 1148,43
+
+[Turns Name]
+p1.pos 			= 139,64
+p1.name.font 		= 3,0, 1
+p2.pos 			= 1141,64
+p2.name.font 		= 6,0, -1
+
+;-----------------------------------------------------------
+
+[Time]
+pos 			= 640,107;640,132
+; Time count display
+counter.offset 		= 0,0
+counter.scale 		= 1,1
+counter.font 		= 5,0, 0
+; Ticks for each count
+framespercount 		= 60
+
+;-----------------------------------------------------------
+
+[Combo]
+team1.pos 		= 0,250        	;Coords to show
+team1.start.x 		= -150       	;Starting x-coords
+counter.font 		= 2,0,1
+team1.text.text 	= G%i   	;You can use %i to show count in the text, eg "%i Hit!"
+team1.displaytime 	= 100    	;Time to show text
+
+[Round]
+match.wins 		= 2              ;Rounds needed to win a match
+match.maxdrawgames 	= 1      ;Max number of drawgames allowed (-1 for infinite)
+start.waittime 		= 30         ;Time to wait before starting intro
+pos = 0,0
+round.time 		= 20              ;Time to show round display
+round.default.anim = 300
+round.default.displaytime = 170
+round.default.offset 	= 640,410
+
+; Gear 4
+[Begin Action 300]
+11,20, 0,0, 60, , A, 1,1,0
+Interpolate Angle
+11,20, 0,0, 1, , A, 1,1,-359
+
+[WinIcon]
+p1.pos 			= 530,124
+p2.pos 			= 712,124
+; Offset for next icon (x,y)
+p1.iconoffset 		= -33,0
+p2.iconoffset 		= 33,0
+; Counter text font and offset for representing wins
+p1.counter.offset 	= 25,25
+p1.counter.font 	= 3,1
+p2.counter.offset 	= -10,25
+p2.counter.font 	= 3,-1

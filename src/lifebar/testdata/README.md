@@ -10,7 +10,7 @@ this app doesn't model at all).
 
 ## Source and license
 
-Trimmed from two real MUGEN/Ikemen GO lifebar packs in a local, personal
+Trimmed from three real MUGEN/Ikemen GO lifebar packs in a local, personal
 reference collection of community screenpacks
 (`/home/neolao/workspace/ikemen-quick-versus/lifebars/`), gathered from the
 MUGEN/Ikemen GO fan community for compatibility testing. These screenpacks
@@ -43,6 +43,13 @@ original (see line counts).
   Lifebar]` (3-player simultaneous mode — vanilla MUGEN tops out at 2
   players) and the `[Guardbar]`/`[Stunbar]` element families (guard-gauge
   and stun-gauge bars, not part of the original MUGEN format at all).
+- **`vhd-ikemen-go-fixture.def`** (175 lines, from the `VHD` pack's
+  `fight.def`, originally 1362 lines) — the same modern section-naming
+  convention as the GMS fixture above, but the specific pack backlog item
+  010's acceptance criteria names directly: every top-level family that
+  item covers (`Lifebar`, `Powerbar`, `Face`, `Name`, `Time`, `WinIcon`,
+  plus `Files`/`Combo`/`Round` already recognized) and its `Simul`/`Turns`
+  mode-variant prefixes on `Lifebar`/`Face`/`Name`.
 - **`truncated-real-fixture.def`** (17 lines) — a small excerpt of the GMS
   fixture above, deliberately corrupted (a section header's closing `]` is
   cut off) to simulate a truncated/interrupted download — a real failure

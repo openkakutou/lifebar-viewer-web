@@ -5,10 +5,20 @@
 // document and reported as a warning instead — see
 // .vibe/decisions/002-folder-only-input-and-warn-on-unrecognized-sections.md.
 //
-// These patterns are a best-effort approximation of the real MUGEN/Ikemen
-// GO lifebar format, not yet validated against a real-file corpus — that
-// hardening is backlog item 006 (fixture-driven compatibility testing),
-// deliberately deferred rather than blocking this item.
+// Two naming conventions are recognized side by side, both real:
+// - The classic MUGEN per-player convention (`P1 Life Bar`, `P2 Power
+//   Bar`, ...).
+// - The modern, generic Ikemen GO convention real lifebar packs actually
+//   use (`Lifebar`, `Powerbar`, `Face`, `Name`, `Time`, `WinIcon`),
+//   confirmed against five independent real packs (backlog item 010).
+//
+// A mode-variant prefix (`Simul`, `Turns`, `Tag`, and numbered forms
+// `Simul_3P`, `Simul_4P`, `Tag_3P`, `Tag_4P`) is recognized only ahead of
+// `Lifebar`, `Face` and `Name` — never `Powerbar`, `Time` or `WinIcon` —
+// because that is what every sampled real file does; see
+// .vibe/decisions/006-ikemen-go-mode-prefix-scoped-to-per-team-families-only.md.
+const MODE_VARIANT_PREFIX = "(?:(?:simul|turns|tag)(?:_[34]p)?\\s+)?";
+
 const KNOWN_SECTION_PATTERNS: RegExp[] = [
   /^files$/,
   /^p[12]\s*life\s*bar$/,
@@ -20,6 +30,12 @@ const KNOWN_SECTION_PATTERNS: RegExp[] = [
   /^round\s*time$/,
   /^round(\s*display)?$/,
   /^combo(\s*display|\s*counter)?$/,
+  new RegExp(`^${MODE_VARIANT_PREFIX}lifebar$`),
+  /^powerbar$/,
+  new RegExp(`^${MODE_VARIANT_PREFIX}face$`),
+  new RegExp(`^${MODE_VARIANT_PREFIX}name$`),
+  /^time$/,
+  /^winicon$/,
 ];
 
 /**

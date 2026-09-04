@@ -177,12 +177,15 @@ describe("parseLifebar", () => {
 // quirks synthetic fixtures don't think to cover. See testdata/README.md
 // for what each fixture is and where it came from.
 //
-// Both real fixtures below currently resolve to the exact same two
-// recognized sections (`Files`, `Combo`) and warn on everything else —
-// this is real, concrete evidence of the compatibility gap tracked by
-// backlog items 010/011 (this app's known-sections patterns assume an old
-// per-player-prefixed naming style, e.g. "P1 Life Bar", that no real file
-// in this fixture set actually uses), not a bug in this test.
+// Both real fixtures now recognize the modern, generic Ikemen GO section
+// names (`Lifebar`, `Powerbar`, `WinIcon`, and mode-variant forms like
+// `Simul_3P Lifebar`) alongside `Files`/`Combo` — backlog item 010 taught
+// known-sections.ts this real-world naming convention. `Info`, `FightFx`,
+// each embedded `Begin Action N` animation block, and the GMS-only
+// `Guardbar`/`Stunbar` families stay unrecognized on purpose (out of this
+// app's scope, or — for Guardbar/Stunbar — not part of item 010's scoped
+// family list). These shared sections are not yet split per player/team
+// (that's backlog item 011, which depends on this one).
 describe("parseLifebar — real-file fixtures (item 006)", () => {
   it("parses a real classic-MUGEN-convention pack, asserting its actual recognized structure", () => {
     const result = parseLifebar(fixture("mfj2-classic-mugen-fixture.def"));
@@ -192,7 +195,10 @@ describe("parseLifebar — real-file fixtures (item 006)", () => {
 
     expect(result.document.sections.map((section) => section.name)).toEqual([
       "Files",
+      "Lifebar",
+      "Powerbar",
       "Combo",
+      "WinIcon",
     ]);
 
     const files = result.document.sections[0];
@@ -216,7 +222,7 @@ describe("parseLifebar — real-file fixtures (item 006)", () => {
     // The Combo family's real position/text entries — concrete evidence
     // the parser reads actual per-team layout data correctly, not just
     // that it "didn't throw".
-    const combo = result.document.sections[1];
+    const combo = result.document.sections[3];
     expect(combo.line).toBe(217);
     expect(combo.entries).toEqual([
       { key: "team1.pos", value: "60, 172", line: 219 },
@@ -235,21 +241,17 @@ describe("parseLifebar — real-file fixtures (item 006)", () => {
       { key: "team2.displaytime", value: "90", line: 233 },
     ]);
 
-    // Every other real section this pack defines — including the ones
-    // that hold this pack's own real position/sprite data for the life
-    // bar, power bar and win-icon elements — is a currently-unrecognized
-    // name under this app's still-MUGEN-classic-only patterns.
+    // `Info` and each embedded `Begin Action N` animation block stay
+    // unrecognized on purpose — out of this app's scope regardless of
+    // naming convention.
     expect(result.warnings).toEqual([
       'line 3: unrecognized section "Info" skipped.',
-      'line 28: unrecognized section "Lifebar" skipped.',
       'line 104: unrecognized section "Begin Action 111" skipped.',
       'line 107: unrecognized section "Begin Action 112" skipped.',
       'line 111: unrecognized section "Begin Action 121" skipped.',
       'line 114: unrecognized section "Begin Action 122" skipped.',
       'line 118: unrecognized section "Begin Action 131" skipped.',
       'line 121: unrecognized section "Begin Action 132" skipped.',
-      'line 127: unrecognized section "Powerbar" skipped.',
-      'line 238: unrecognized section "WinIcon" skipped.',
     ]);
   });
 
@@ -261,7 +263,11 @@ describe("parseLifebar — real-file fixtures (item 006)", () => {
 
     expect(result.document.sections.map((section) => section.name)).toEqual([
       "Files",
+      "Lifebar",
+      "Simul_3P Lifebar",
+      "Powerbar",
       "Combo",
+      "WinIcon",
     ]);
 
     const files = result.document.sections[0];
@@ -283,7 +289,7 @@ describe("parseLifebar — real-file fixtures (item 006)", () => {
 
     // Spot-check real per-team position/formatting entries rather than
     // the full 30-entry array — still real values, not synthetic ones.
-    const combo = result.document.sections[1];
+    const combo = result.document.sections[4];
     expect(combo.line).toBe(214);
     expect(combo.entries).toHaveLength(30);
     expect(combo.entries[0]).toEqual({
@@ -302,19 +308,49 @@ describe("parseLifebar — real-file fixtures (item 006)", () => {
       line: 249,
     });
 
-    // Genuine Ikemen-GO-only sections (the source pack's own comments
-    // label them "Ikemen feature") are real evidence this app's current
-    // patterns don't yet cover them — same documented gap as the classic
-    // pack above, items 010/011 close it.
+    // `Info`, `FightFx` and the guard-gauge/stun-gauge families
+    // (`Guardbar`, `Stunbar`) stay unrecognized on purpose — out of this
+    // app's scope (item 010 deliberately doesn't cover them).
     expect(result.warnings).toEqual([
       'line 3: unrecognized section "Info" skipped.',
       'line 21: unrecognized section "FightFx" skipped.',
-      'line 25: unrecognized section "Lifebar" skipped.',
-      'line 68: unrecognized section "Simul_3P Lifebar" skipped.',
-      'line 175: unrecognized section "Powerbar" skipped.',
-      'line 253: unrecognized section "WinIcon" skipped.',
       'line 268: unrecognized section "Guardbar" skipped.',
       'line 299: unrecognized section "Stunbar" skipped.',
+    ]);
+  });
+
+  it("parses a real Ikemen GO pack using the modern generic section-naming convention, recognizing every in-scope family (backlog item 010)", () => {
+    const result = parseLifebar(fixture("vhd-ikemen-go-fixture.def"));
+
+    expect(result.status).toBe("success");
+    if (result.status !== "success") throw new Error("expected success");
+
+    expect(result.document.sections.map((section) => section.name)).toEqual([
+      "Files",
+      "Lifebar",
+      "Simul Lifebar",
+      "Turns Lifebar",
+      "Powerbar",
+      "Face",
+      "Simul Face",
+      "Turns Face",
+      "Name",
+      "Simul Name",
+      "Turns Name",
+      "Time",
+      "Combo",
+      "Round",
+      "WinIcon",
+    ]);
+
+    // `Info`, `FightFx` and each embedded `Begin Action N` animation block
+    // stay unrecognized on purpose — out of this app's scope.
+    expect(result.warnings).toEqual([
+      'line 9: unrecognized section "Info" skipped.',
+      'line 24: unrecognized section "FightFx" skipped.',
+      'line 44: unrecognized section "Begin Action 170" skipped.',
+      'line 81: unrecognized section "Begin Action 220" skipped.',
+      'line 160: unrecognized section "Begin Action 300" skipped.',
     ]);
   });
 

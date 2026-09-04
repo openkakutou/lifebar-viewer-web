@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The app now recognizes real Ikemen GO lifebar packs' modern section names (life bar, power bar, face, name, time, win icons, plus their simultaneous/turns/tag mode variants), alongside the classic MUGEN naming it already supported. Loading a real Ikemen GO lifebar now shows its actual elements in the preview instead of a nearly empty panel.
+
 ## [0.6.1] - 2026-09-03
 
 ### Fixed
