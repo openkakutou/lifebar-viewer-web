@@ -1,5 +1,5 @@
 ---
-status: todo
+status: done
 depends_on: [006]
 ---
 # Recognize Ikemen GO Lifebar Section Names
