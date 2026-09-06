@@ -1,0 +1,51 @@
+{
+  "app": {
+    "languageLabel": "Langue"
+  },
+  "errors": {
+    "designTokensFailedHeading": "{{title}} n'a pas pu se charger",
+    "designTokensFailedBody": "La feuille de style des jetons de conception n'a pas pu se charger. Essayez de recharger la page ; si cela persiste, merci de le signaler."
+  },
+  "elements": {
+    "heading": "Éléments ({{count}})",
+    "empty": "Cette barre de vie ne contient aucun élément reconnu.",
+    "unnamed": "(élément sans nom)",
+    "noSpriteLayers": "Aucun calque de sprite sur cet élément.",
+    "waitingForSheet": "Chargez une feuille de sprites pour prévisualiser les sprites de cet élément.",
+    "unresolvedSprite": "Référence de sprite introuvable dans la feuille chargée : {{refs}}",
+    "waitingMessage": "En attente d'une feuille de sprites pour prévisualiser les éléments."
+  },
+  "simulation": {
+    "playerHeading": "P{{player}}",
+    "lifeLabel": "P{{player}} — Vie",
+    "powerLabel": "P{{player}} — Puissance",
+    "comboLabel": "Combo"
+  },
+  "input": {
+    "folderLabel": "Sélectionnez un dossier de barre de vie (contenant son fichier .def, par ex. fight.def)",
+    "dropHint": "…ou glissez-déposez un dossier de barre de vie ici",
+    "resetButton": "Choisir un autre dossier",
+    "selectionPrompt": "Quel fichier est la barre de vie ?",
+    "candidateGroupLabel": "Fichiers de barre de vie candidats",
+    "confirmSelection": "Charger le fichier sélectionné",
+    "reading": "Lecture…",
+    "sectionWordSingular": "section",
+    "sectionWordPlural": "sections",
+    "groupWordSingular": "groupe",
+    "groupWordPlural": "groupes",
+    "success": "{{fileName}} chargé — {{count}} {{word}} reconnue(s)",
+    "warningsSuffix": ", {{count}} {{word}} non reconnue(s) ignorée(s)",
+    "needsSelection": "{{count}} fichiers de barre de vie possibles trouvés — choisissez lequel charger.",
+    "errorNoFilesDrop": "Impossible de lire le dossier déposé — votre navigateur ne prend peut-être pas en charge le glisser-déposer de dossiers ici. Essayez plutôt le bouton du sélecteur de dossier.",
+    "errorNoFilesPicker": "Ce dossier est vide — choisissez un dossier contenant le fichier .def de la barre de vie.",
+    "errorNoCandidate": "Aucun fichier de barre de vie au format .def trouvé dans ce dossier — un fichier comme fight.def est attendu.",
+    "errorReadFile": "Impossible de lire {{fileName}} : {{message}}",
+    "errorParseFile": "Impossible d'analyser {{fileName}} : {{message}}",
+    "spriteSuccess": "Feuille de sprites : {{fileName}} ({{count}} {{word}}).",
+    "spriteNoneFound": "Aucune feuille de sprites trouvée dans ce dossier.",
+    "spriteMultipleFound": "Plusieurs feuilles de sprites trouvées ({{count}}) — non résolu.",
+    "spriteReadError": "Impossible de lire la feuille de sprites {{fileName}} : {{message}}.",
+    "spriteSetupError": "Le module WASM sff n'est pas disponible ({{message}}). Exécutez « npm run wasm:download -- <version> » pour le récupérer.",
+    "spriteParseError": "Impossible d'analyser la feuille de sprites {{fileName}} : {{message}}."
+  }
+}

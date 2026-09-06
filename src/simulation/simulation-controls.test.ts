@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { initAppI18n } from "../i18n/i18n.ts";
 import type { LifebarDocument, LifebarSection } from "../lifebar/document.ts";
 import {
   defaultSimulatedValue,
@@ -123,5 +124,21 @@ describe("renderSimulationControls", () => {
 
     const range = root.querySelector('wuik-slider[data-slot-key="combo-0"]');
     expect(range?.getAttribute("max")).toBe("50");
+  });
+
+  it("renders slot labels and the player group heading through the active locale's catalog", async () => {
+    const instance = await initAppI18n();
+    await instance.changeLanguage("fr");
+    try {
+      const root = document.createElement("div");
+      const document_ = doc(["P1 Life Bar"]);
+
+      renderSimulationControls(root, document_, valuesFor(document_), () => {});
+
+      expect(root.querySelector("h4")?.textContent).toBe("P1");
+      expect(root.textContent).toContain("P1 — Vie");
+    } finally {
+      await instance.changeLanguage("en");
+    }
   });
 });

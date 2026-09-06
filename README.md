@@ -10,6 +10,7 @@ This project is in early-stage development. Available now:
 - The sprite sheet a loaded lifebar references is decoded automatically from the same folder, no extra step needed. A missing sprite sheet build or a corrupt sprite sheet shows a clear message without blocking the lifebar itself from loading.
 - See a live preview of every recognized element (life bar, power bar, face, name, win icons, match wins, round time, round display, combo): each one is listed, drawn at its real configured position using the resolved sprite sheet, and selecting it highlights exactly where it sits in the preview. An element that needs a sprite sheet not loaded yet, or that references a sprite the loaded sheet doesn't have, is clearly marked instead of showing a broken image, and a lifebar with no recognized elements shows a clear message instead of an empty panel.
 - Simulate life, power, and combo count values with sliders (paired with numeric inputs for precise entry) to see how the loaded lifebar's elements react, without a real match running. A slider only appears for a value the loaded lifebar actually defines, and an out-of-range or invalid entry clamps to a valid value instead of showing a broken state.
+- Available in English and French. A language switcher in the toolbar changes it instantly, with no page reload, and your choice is remembered the next time you open the app.
 <!-- vibe:end:features -->
 
 <!-- vibe:begin:install -->

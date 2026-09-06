@@ -8,6 +8,7 @@
 // an unresolved sprite reference, an element with no sprite layers at all,
 // and "no sheet loaded yet" are three visually distinct states rather than
 // one generic placeholder.
+import { t } from "../i18n/i18n.ts";
 import type { LifebarDocument } from "../lifebar/document.ts";
 import { detectSimulatableSlots } from "../simulation/simulated-values.ts";
 import { renderSimulationOverlay } from "../simulation/simulation-overlay.ts";
@@ -104,13 +105,18 @@ export function renderElementsPanel(
   panel.className = "elements-panel";
 
   const heading = document.createElement("h3");
-  heading.textContent = `Elements (${document_.sections.length})`;
+  heading.textContent = t("elements.heading", "Elements ({{count}})", {
+    count: String(document_.sections.length),
+  });
   panel.appendChild(heading);
 
   if (document_.sections.length === 0) {
     const empty = document.createElement("p");
     empty.className = "elements-panel__empty";
-    empty.textContent = "This lifebar has no recognized elements.";
+    empty.textContent = t(
+      "elements.empty",
+      "This lifebar has no recognized elements.",
+    );
     panel.appendChild(empty);
     root.appendChild(panel);
     return;
@@ -174,7 +180,8 @@ export function renderElementsPanel(
     button.type = "button";
     button.className = "elements-panel__item";
     button.setAttribute("aria-pressed", "false");
-    button.textContent = section.name || "(unnamed element)";
+    button.textContent =
+      section.name || t("elements.unnamed", "(unnamed element)");
     button.addEventListener("click", () => select(i));
     list.appendChild(button);
     buttons.push(button);
@@ -189,10 +196,16 @@ export function renderElementsPanel(
 
     if (layerResolutions.length === 0) {
       overlay.classList.add("elements-panel__overlay--no-sprite");
-      overlay.title = "No sprite layers on this element.";
+      overlay.title = t(
+        "elements.noSpriteLayers",
+        "No sprite layers on this element.",
+      );
     } else if (spriteGroups === null) {
       overlay.classList.add("elements-panel__overlay--waiting");
-      overlay.title = "Load a sprite sheet to preview this element's sprites.";
+      overlay.title = t(
+        "elements.waitingForSheet",
+        "Load a sprite sheet to preview this element's sprites.",
+      );
     } else {
       const badRefs = layerResolutions
         .filter(
@@ -201,7 +214,11 @@ export function renderElementsPanel(
         .map((r) => r.raw);
       if (badRefs.length > 0) {
         overlay.classList.add("elements-panel__overlay--unresolved");
-        overlay.title = `Sprite reference not found in the loaded sheet: ${badRefs.join(", ")}`;
+        overlay.title = t(
+          "elements.unresolvedSprite",
+          "Sprite reference not found in the loaded sheet: {{refs}}",
+          { refs: badRefs.join(", ") },
+        );
       }
     }
 
@@ -219,7 +236,10 @@ export function renderElementsPanel(
   if (spriteGroups === null) {
     const waiting = document.createElement("p");
     waiting.className = "elements-panel__waiting-message";
-    waiting.textContent = "Waiting for a sprite sheet to preview elements.";
+    waiting.textContent = t(
+      "elements.waitingMessage",
+      "Waiting for a sprite sheet to preview elements.",
+    );
     preview.appendChild(waiting);
   }
 

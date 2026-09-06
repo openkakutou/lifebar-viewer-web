@@ -22,11 +22,16 @@ flowchart TD
     simValues["simulation/simulated-values.ts\n(detect slots, defaults, clamping)"]
     simControls["simulation/simulation-controls.ts\n(sliders + numeric inputs UI)"]
     simOverlay["simulation/simulation-overlay.ts\n(diagnostic fill/badge overlay)"]
+    i18n["i18n/i18n.ts\n(t(), initAppI18n, onLocaleChange)"]
     main["main.ts\n(app shell)"]
 
     main --> view
     main --> panel
     main --> simControls
+    main --> i18n
+    view --> i18n
+    panel --> i18n
+    simControls --> i18n
     view --> entries
     view --> orchestration
     view --> sheetOrchestration
@@ -63,6 +68,7 @@ flowchart TD
 - `simulation/simulated-values.ts` is pure logic (no DOM): `detectSimulatableSlots` scans a loaded document for life/power/combo sections, and `defaultSimulatedValue`/`clampSimulatedValue` hold each kind's default and valid range.
 - `simulation/simulation-controls.ts` renders a slider paired with a numeric input for each detected slot, grouped by player, calling back with the clamped value on every change.
 - `simulation/simulation-overlay.ts` draws a simulated value as a diagnostic overlay on top of an element's own box in the preview — a fill bar for life/power, a numeric badge for combo — visually distinct from the selection highlight so both can be seen on the same element at once. See `.vibe/decisions/005-simulation-values-shown-as-diagnostic-overlay-not-authentic-rendering.md` for why this is a diagnostic overlay rather than authentic MUGEN bar-fill/font rendering.
+- `i18n/i18n.ts` wires the shared `web-ui-kit` i18next integration layer under this app's own namespace (`en.json`/`fr.json`), and exposes `t()` (translate with a default-value fallback), `initAppI18n` (called once from `main.ts`'s bootstrap), and `onLocaleChange`. Every DOM-rendering module reads its own strings through `t()` directly rather than importing an i18next instance. See `.vibe/decisions/007-i18n-integration-approach.md`.
 
 ## Data flow: loading a lifebar
 
@@ -151,4 +157,10 @@ Deliberately reuses the lifebar's own already-gathered folder listing rather tha
 3. `elements-panel.ts` looks up each rendered section's slot (if any) in `simulatedValues` and, when a value is present, calls `simulation-overlay.ts` to draw the diagnostic overlay at that element's already-computed box — entirely independent of whether the sprite sheet has resolved.
 
 A slot with no entry in `simulatedValues` yet (or a section that isn't simulatable at all) gets no overlay — never a default the user didn't actually choose.
+
+## Data flow: localization
+
+`main.ts`'s bootstrap (`mount()`) awaits `initAppI18n()` before the very first `renderApp` call, so the first paint already shows the resolved locale (browser-detected, or a persisted override) — `renderApp` itself stays synchronous and never calls it, so tests can call `renderApp` directly with deterministic English defaults.
+
+A `<wuik-locale-switcher>` in the toolbar drives the shared i18next instance directly (its `.i18n` property); switching it fires `web-ui-kit`'s own locale-change event. `main.ts` subscribes once to `onLocaleChange` and re-invokes its existing `refreshElementsPanel`/`refreshSimulationControls` closures — the same ones any ordinary data change already uses — so the current element selection and simulated values survive a language switch untouched. `input/lifebar-folder-input-view.ts` (a long-lived view mounted once) subscribes on its own to re-format its currently-shown status text from a small stored status descriptor rather than a pre-formatted string, so an already-displayed message (including an in-progress multi-candidate selection) re-renders correctly in the new language without rebuilding it from scratch.
 

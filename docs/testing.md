@@ -109,6 +109,10 @@ with no simulated value gets no overlay, a non-simulatable section gets no
 overlay even when other values are set, and the simulation overlay and the
 selection overlay stay independently present on the same element.
 
+## Translated text is asserted without every test bootstrapping i18n
+
+`t()` (`src/i18n/i18n.ts`) returns its given `defaultValue`, interpolated, whenever no test in the current file has called `initAppI18n()` yet — so the large majority of existing tests keep asserting plain English text unchanged, with no i18n setup of their own. A handful of tests per rendering module (`main.test.ts`, `elements-panel.test.ts`, `simulation-controls.test.ts`, `lifebar-folder-input-view.test.ts`) call `initAppI18n()` and `instance.changeLanguage("fr")` to prove the real catalog wiring end-to-end, always inside a `try`/`finally` (or an `afterEach`) that switches back to `"en"` and clears `localStorage` — `getI18n()`'s active instance and the persisted override are both process-wide for the rest of that test file otherwise.
+
 ## A `web-ui-kit` component used in application code is tested via its documented event contract, not its internals
 
 `simulation-controls.ts`'s slider is `web-ui-kit`'s `<wuik-slider>` (org-wide UX audit, backlog item `012`). Its unit test file never imports `@openkakutou/web-ui-kit`, so the real component class isn't registered under jsdom in that file — the same reason `elements-panel.test.ts` never sees real `<wuik-panel>` behavior either. `simulation-controls.test.ts` therefore asserts against the element's `min`/`max`/`value` **attributes** (not the native `<input>` IDL properties this component doesn't expose) and drives it by dispatching the component's own documented `wuik-input` custom event directly, rather than a native `"input"` event — real slider behavior (dragging, keyboard operability) is confirmed once with a real-browser Playwright pass instead, the same split the rest of this file documents for every other component.
@@ -148,3 +152,17 @@ input clamps both the input and the overlay to the range maximum; clearing
 the field clamps to the range minimum instead of showing a broken state;
 and moving the combo slider shows a numeric badge (not a fill bar) with
 the matching value — with zero console errors throughout.
+
+Localization got the same treatment against a real headless Chromium (dev
+server + a scripted Playwright session, browser locale pinned to `en-US`
+since this sandbox's own default resolves to French): the toolbar shows a
+language switcher labelled "Language" alongside the title with no layout
+overlap; loading a lifebar shows the correct English status message;
+switching the locale to French — with no page reload — updates the
+already-shown status message, the folder-input's static labels, the
+elements panel heading, and the simulation controls' labels in place, and
+the previously selected element stays selected; a folder with no lifebar
+file shows a real French error message, not a blank string or a raw
+i18next key; and reloading the page after the switch keeps the French
+choice (persisted via `localStorage`) — with zero console errors
+throughout.

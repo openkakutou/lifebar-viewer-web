@@ -15,6 +15,17 @@
 }
 
 /*
+ * Locale switcher (backlog item 008) -- `<wuik-toolbar>` is already a flex
+ * row with a gap (its own :host styling), so the switcher just needs to
+ * sit at the far end and never get squeezed by the title; the toolbar's
+ * own `overflow-x: auto` already handles a viewport too narrow for both.
+ */
+.locale-switcher {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/*
  * Lifebar folder input (backlog item 002) — folder selection is the only
  * input path, see
  * .vibe/decisions/002-folder-only-input-and-warn-on-unrecognized-sections.md.

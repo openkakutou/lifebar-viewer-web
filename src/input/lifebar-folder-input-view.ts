@@ -10,6 +10,7 @@
 // stay native `<input type="radio">` — this kit has no radio-group
 // component yet (org-wide UX audit, backlog item 012; tracked there as
 // `web-ui-kit` backlog item 014).
+import { onLocaleChange, t } from "../i18n/i18n.ts";
 import type { LifebarDocument } from "../lifebar/document.ts";
 import type { GatheredFile } from "./folder-entries.ts";
 import {
@@ -46,38 +47,166 @@ export interface LifebarFolderInputViewOptions {
 
 type Phase = "idle" | "loading" | "needs-selection" | "done";
 
-function formatSuccessMessage(
-  fileName: string,
-  document: LifebarDocument,
-  warnings: string[],
-): string {
-  const sectionCount = document.sections.length;
-  const sectionWord = sectionCount === 1 ? "section" : "sections";
-  let message = `Loaded ${fileName} — ${sectionCount} ${sectionWord} recognized`;
-  if (warnings.length > 0) {
-    const warningWord = warnings.length === 1 ? "section" : "sections";
-    message += `, ${warnings.length} unrecognized ${warningWord} skipped`;
-  }
-  return `${message}.`;
+/**
+ * What the main status line currently shows -- a small tagged description
+ * of the situation and its raw parameters, not pre-formatted text. Kept as
+ * data (not a string) so a locale change can re-format it in the new
+ * language without re-running the load/parse that produced it. See
+ * .vibe/decisions/007-i18n-integration-approach.md.
+ */
+type MainStatus =
+  | { kind: "reading" }
+  | {
+      kind: "success";
+      fileName: string;
+      sectionCount: number;
+      warningCount: number;
+    }
+  | { kind: "needs-selection"; count: number }
+  | { kind: "error"; error: MainStatusError };
+
+type MainStatusError =
+  | { kind: "no-files-drop" }
+  | { kind: "no-files-picker" }
+  | { kind: "no-candidate" }
+  | { kind: "read-error"; fileName: string; message: string }
+  | { kind: "parse-error"; fileName: string; message: string };
+
+type SpriteStatus =
+  | { kind: "success"; fileName: string; groupCount: number }
+  | { kind: "none-found" }
+  | { kind: "multiple-found"; count: number }
+  | { kind: "read-error"; fileName: string; message: string }
+  | { kind: "setup-error"; message: string }
+  | { kind: "parse-error"; fileName: string; message: string };
+
+function sectionWord(count: number): string {
+  return count === 1
+    ? t("input.sectionWordSingular", "section")
+    : t("input.sectionWordPlural", "sections");
 }
 
-function formatSpriteSheetMessage(result: SpriteSheetFolderResult): string {
-  switch (result.status) {
-    case "success": {
-      const groupCount = result.spriteGroups.length;
-      const groupWord = groupCount === 1 ? "group" : "groups";
-      return `Sprite sheet: ${result.fileName} (${groupCount} ${groupWord}).`;
-    }
-    case "none-found":
-      return "No sprite sheet found in this folder.";
-    case "multiple-found":
-      return `Multiple sprite sheets found (${result.candidates.length}) — not resolved.`;
+function groupWord(count: number): string {
+  return count === 1
+    ? t("input.groupWordSingular", "group")
+    : t("input.groupWordPlural", "groups");
+}
+
+function formatMainStatusError(error: MainStatusError): string {
+  switch (error.kind) {
+    case "no-files-drop":
+      return t(
+        "input.errorNoFilesDrop",
+        "Couldn't read anything from the dropped folder — your browser may not support folder drag-and-drop here. Try the folder picker button instead.",
+      );
+    case "no-files-picker":
+      return t(
+        "input.errorNoFilesPicker",
+        "This folder is empty — pick a folder that contains the lifebar's .def-style file.",
+      );
+    case "no-candidate":
+      return t(
+        "input.errorNoCandidate",
+        "No .def-style lifebar file found in this folder — expected one like fight.def.",
+      );
     case "read-error":
-      return `Could not read sprite sheet ${result.fileName}: ${result.message}.`;
-    case "setup-error":
-      return `The sff WASM build isn't available (${result.message}). Run "npm run wasm:download -- <version>" to fetch it.`;
+      return t(
+        "input.errorReadFile",
+        "Could not read {{fileName}}: {{message}}",
+        {
+          fileName: error.fileName,
+          message: error.message,
+        },
+      );
     case "parse-error":
-      return `Could not parse sprite sheet ${result.fileName}: ${result.message}.`;
+      return t(
+        "input.errorParseFile",
+        "Could not parse {{fileName}}: {{message}}",
+        { fileName: error.fileName, message: error.message },
+      );
+  }
+}
+
+function formatMainStatus(status: MainStatus | null): string {
+  if (status === null) return "";
+  switch (status.kind) {
+    case "reading":
+      return t("input.reading", "Reading…");
+    case "success": {
+      let message = t(
+        "input.success",
+        "Loaded {{fileName}} — {{count}} {{word}} recognized",
+        {
+          fileName: status.fileName,
+          count: String(status.sectionCount),
+          word: sectionWord(status.sectionCount),
+        },
+      );
+      if (status.warningCount > 0) {
+        message += t(
+          "input.warningsSuffix",
+          ", {{count}} unrecognized {{word}} skipped",
+          {
+            count: String(status.warningCount),
+            word: sectionWord(status.warningCount),
+          },
+        );
+      }
+      return `${message}.`;
+    }
+    case "needs-selection":
+      return t(
+        "input.needsSelection",
+        "Found {{count}} possible lifebar files — pick which one to load.",
+        { count: String(status.count) },
+      );
+    case "error":
+      return formatMainStatusError(status.error);
+  }
+}
+
+function formatSpriteStatus(status: SpriteStatus | null): string {
+  if (status === null) return "";
+  switch (status.kind) {
+    case "success":
+      return t(
+        "input.spriteSuccess",
+        "Sprite sheet: {{fileName}} ({{count}} {{word}}).",
+        {
+          fileName: status.fileName,
+          count: String(status.groupCount),
+          word: groupWord(status.groupCount),
+        },
+      );
+    case "none-found":
+      return t(
+        "input.spriteNoneFound",
+        "No sprite sheet found in this folder.",
+      );
+    case "multiple-found":
+      return t(
+        "input.spriteMultipleFound",
+        "Multiple sprite sheets found ({{count}}) — not resolved.",
+        { count: String(status.count) },
+      );
+    case "read-error":
+      return t(
+        "input.spriteReadError",
+        "Could not read sprite sheet {{fileName}}: {{message}}.",
+        { fileName: status.fileName, message: status.message },
+      );
+    case "setup-error":
+      return t(
+        "input.spriteSetupError",
+        'The sff WASM build isn\'t available ({{message}}). Run "npm run wasm:download -- <version>" to fetch it.',
+        { message: status.message },
+      );
+    case "parse-error":
+      return t(
+        "input.spriteParseError",
+        "Could not parse sprite sheet {{fileName}}: {{message}}.",
+        { fileName: status.fileName, message: status.message },
+      );
   }
 }
 
@@ -89,24 +218,61 @@ function isSpriteSheetError(result: SpriteSheetFolderResult): boolean {
   );
 }
 
-function formatErrorMessage(
+function toMainStatusError(
   result: Exclude<
     LifebarFolderInputResult,
     { status: "success" | "needs-selection" }
   >,
   source: "picker" | "drop",
-): string {
+): MainStatusError {
   switch (result.status) {
     case "no-files":
       return source === "drop"
-        ? "Couldn't read anything from the dropped folder — your browser may not support folder drag-and-drop here. Try the folder picker button instead."
-        : "This folder is empty — pick a folder that contains the lifebar's .def-style file.";
+        ? { kind: "no-files-drop" }
+        : { kind: "no-files-picker" };
     case "no-candidate":
-      return "No .def-style lifebar file found in this folder — expected one like fight.def.";
+      return { kind: "no-candidate" };
     case "read-error":
-      return `Could not read ${result.fileName}: ${result.message}`;
+      return {
+        kind: "read-error",
+        fileName: result.fileName,
+        message: result.message,
+      };
     case "parse-error":
-      return `Could not parse ${result.fileName}: ${result.message}`;
+      return {
+        kind: "parse-error",
+        fileName: result.fileName,
+        message: result.message,
+      };
+  }
+}
+
+function toSpriteStatus(result: SpriteSheetFolderResult): SpriteStatus {
+  switch (result.status) {
+    case "success":
+      return {
+        kind: "success",
+        fileName: result.fileName,
+        groupCount: result.spriteGroups.length,
+      };
+    case "none-found":
+      return { kind: "none-found" };
+    case "multiple-found":
+      return { kind: "multiple-found", count: result.candidates.length };
+    case "read-error":
+      return {
+        kind: "read-error",
+        fileName: result.fileName,
+        message: result.message,
+      };
+    case "setup-error":
+      return { kind: "setup-error", message: result.message };
+    case "parse-error":
+      return {
+        kind: "parse-error",
+        fileName: result.fileName,
+        message: result.message,
+      };
   }
 }
 
@@ -121,11 +287,19 @@ export function renderLifebarFolderInput(
   root.replaceChildren();
 
   let phase: Phase = "idle";
-  let statusMessage = "";
+  let mainStatus: MainStatus | null = null;
+  let spriteStatus: SpriteStatus | null = null;
   let isError = false;
   let lastSource: "picker" | "drop" = "picker";
   let selectedIndex: number | null = null;
   let lastGatheredFiles: GatheredFile[] = [];
+  // The selection screen's own static labels are re-translated in place on
+  // a locale change (see the `onLocaleChange` subscription below) without
+  // rebuilding the radios themselves, so an in-progress selection and the
+  // confirm button's enabled state survive a language switch untouched.
+  let selectionPrompt: HTMLParagraphElement | null = null;
+  let selectionGroup: HTMLElement | null = null;
+  let selectionConfirmButton: HTMLElement | null = null;
 
   const panel = document.createElement("div");
   panel.className = "lifebar-folder-input";
@@ -136,8 +310,6 @@ export function renderLifebarFolderInput(
   const label = document.createElement("label");
   label.className = "lifebar-folder-input__label";
   label.htmlFor = "lifebar-folder-picker";
-  label.textContent =
-    "Select a lifebar folder (containing its .def-style file, e.g. fight.def)";
 
   const picker = document.createElement("input");
   picker.type = "file";
@@ -147,7 +319,6 @@ export function renderLifebarFolderInput(
 
   const hint = document.createElement("p");
   hint.className = "lifebar-folder-input__hint";
-  hint.textContent = "…or drag and drop a lifebar folder here";
 
   dropZone.append(label, picker, hint);
 
@@ -164,11 +335,43 @@ export function renderLifebarFolderInput(
   resetButton.setAttribute("variant", "secondary");
   resetButton.className = "lifebar-folder-input__reset";
   resetButton.dataset.action = "reset";
-  resetButton.textContent = "Choose a different folder";
   resetButton.hidden = true;
 
   panel.append(dropZone, selectionContainer, status, resetButton);
   root.appendChild(panel);
+
+  function renderStaticText(): void {
+    label.textContent = t(
+      "input.folderLabel",
+      "Select a lifebar folder (containing its .def-style file, e.g. fight.def)",
+    );
+    hint.textContent = t(
+      "input.dropHint",
+      "…or drag and drop a lifebar folder here",
+    );
+    resetButton.textContent = t(
+      "input.resetButton",
+      "Choose a different folder",
+    );
+    if (selectionPrompt) {
+      selectionPrompt.textContent = t(
+        "input.selectionPrompt",
+        "Which file is the lifebar?",
+      );
+    }
+    if (selectionGroup) {
+      selectionGroup.setAttribute(
+        "aria-label",
+        t("input.candidateGroupLabel", "Candidate lifebar files"),
+      );
+    }
+    if (selectionConfirmButton) {
+      selectionConfirmButton.textContent = t(
+        "input.confirmSelection",
+        "Load selected file",
+      );
+    }
+  }
 
   function render(): void {
     picker.disabled = phase === "loading";
@@ -177,18 +380,24 @@ export function renderLifebarFolderInput(
       phase === "loading",
     );
     status.classList.toggle("lifebar-folder-input__status--error", isError);
-    status.textContent = statusMessage;
+    const mainText = formatMainStatus(mainStatus);
+    const spriteText = spriteStatus ? formatSpriteStatus(spriteStatus) : "";
+    status.textContent = spriteText ? `${mainText} ${spriteText}` : mainText;
     resetButton.hidden = phase === "idle" || phase === "loading";
     selectionContainer.hidden = phase !== "needs-selection";
   }
 
   function resetToIdle(): void {
     phase = "idle";
-    statusMessage = "";
+    mainStatus = null;
+    spriteStatus = null;
     isError = false;
     selectedIndex = null;
     picker.value = "";
     selectionContainer.replaceChildren();
+    selectionPrompt = null;
+    selectionGroup = null;
+    selectionConfirmButton = null;
     render();
   }
 
@@ -197,16 +406,16 @@ export function renderLifebarFolderInput(
     selectedIndex = null;
 
     const prompt = document.createElement("p");
-    prompt.textContent = "Which file is the lifebar?";
+    selectionPrompt = prompt;
 
     const group = document.createElement("div");
     group.setAttribute("role", "radiogroup");
-    group.setAttribute("aria-label", "Candidate lifebar files");
+    selectionGroup = group;
 
     const confirmButton = document.createElement("wuik-button");
     confirmButton.dataset.action = "confirm-selection";
-    confirmButton.textContent = "Load selected file";
     confirmButton.setAttribute("disabled", "");
+    selectionConfirmButton = confirmButton;
 
     candidates.forEach((candidate, index) => {
       const optionLabel = document.createElement("label");
@@ -233,7 +442,7 @@ export function renderLifebarFolderInput(
       if (selectedIndex === null) return;
       const chosen = candidates[selectedIndex];
       phase = "loading";
-      statusMessage = "Reading…";
+      mainStatus = { kind: "reading" };
       isError = false;
       render();
       void finishLoading(
@@ -242,6 +451,7 @@ export function renderLifebarFolderInput(
     });
 
     selectionContainer.append(prompt, group, confirmButton);
+    renderStaticText();
   }
 
   async function finishLoading(
@@ -252,11 +462,12 @@ export function renderLifebarFolderInput(
     if (result.status === "success") {
       phase = "done";
       isError = false;
-      statusMessage = formatSuccessMessage(
-        result.fileName,
-        result.document,
-        result.warnings,
-      );
+      mainStatus = {
+        kind: "success",
+        fileName: result.fileName,
+        sectionCount: result.document.sections.length,
+        warningCount: result.warnings.length,
+      };
       render();
       options.onLoaded({
         document: result.document,
@@ -269,7 +480,7 @@ export function renderLifebarFolderInput(
         result.document,
         options.spriteSheetOptions,
       );
-      statusMessage = `${statusMessage} ${formatSpriteSheetMessage(spriteSheetResult)}`;
+      spriteStatus = toSpriteStatus(spriteSheetResult);
       isError = isSpriteSheetError(spriteSheetResult);
       render();
       options.onSpriteSheetResolved?.(spriteSheetResult);
@@ -279,7 +490,7 @@ export function renderLifebarFolderInput(
     if (result.status === "needs-selection") {
       phase = "needs-selection";
       isError = false;
-      statusMessage = `Found ${result.candidates.length} possible lifebar files — pick which one to load.`;
+      mainStatus = { kind: "needs-selection", count: result.candidates.length };
       renderSelection(result.candidates);
       render();
       return;
@@ -287,7 +498,10 @@ export function renderLifebarFolderInput(
 
     phase = "done";
     isError = true;
-    statusMessage = formatErrorMessage(result, lastSource);
+    mainStatus = {
+      kind: "error",
+      error: toMainStatusError(result, lastSource),
+    };
     render();
   }
 
@@ -298,7 +512,7 @@ export function renderLifebarFolderInput(
     lastSource = source;
     lastGatheredFiles = files;
     phase = "loading";
-    statusMessage = "Reading…";
+    mainStatus = { kind: "reading" };
     isError = false;
     render();
     void finishLoading(loadLifebarFromFolderFiles(files, options.fileOptions));
@@ -333,5 +547,17 @@ export function renderLifebarFolderInput(
     );
   });
 
+  // This view is only ever mounted once per app session (see
+  // main.ts's renderApp), so one subscription for its whole lifetime never
+  // accumulates. Re-formats whatever is currently shown (the static
+  // chrome, the main/sprite status text, the selection screen's labels)
+  // from the state already held above -- never re-running a load/parse --
+  // so an in-progress folder selection or radio pick survives untouched.
+  onLocaleChange(() => {
+    renderStaticText();
+    render();
+  });
+
+  renderStaticText();
   render();
 }

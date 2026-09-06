@@ -13,6 +13,7 @@
 // `wuik-input` event rather than a native "input" listener — the numeric
 // input pairing stays a plain native `<input type="number">`, since this
 // kit has no equivalent component for it yet.
+import { t } from "../i18n/i18n.ts";
 import type { LifebarDocument } from "../lifebar/document.ts";
 import {
   type SimulatableSlot,
@@ -20,6 +21,24 @@ import {
   defaultSimulatedValue,
   detectSimulatableSlots,
 } from "./simulated-values.ts";
+
+/**
+ * The translated label shown for a slot. `slot.label` (pure logic, never
+ * translated -- .vibe/decisions/007) is always passed as the `t()`
+ * `defaultValue`, so the rendered English text is identical whichever path
+ * `t()` takes.
+ */
+function slotLabel(slot: SimulatableSlot): string {
+  const player = String(slot.player);
+  switch (slot.kind) {
+    case "life":
+      return t("simulation.lifeLabel", slot.label, { player });
+    case "power":
+      return t("simulation.powerLabel", slot.label, { player });
+    case "combo":
+      return t("simulation.comboLabel", slot.label);
+  }
+}
 
 const RANGE_BOUNDS: Record<
   SimulatableSlot["kind"],
@@ -56,7 +75,9 @@ export function renderSimulationControls(
       group.className = "simulation-controls__group";
       if (slot.player !== null) {
         const heading = document.createElement("h4");
-        heading.textContent = `P${slot.player}`;
+        heading.textContent = t("simulation.playerHeading", `P${slot.player}`, {
+          player: String(slot.player),
+        });
         group.appendChild(heading);
       }
       container.appendChild(group);
@@ -84,7 +105,7 @@ function buildSlotRow(
 
   const label = document.createElement("label");
   label.className = "simulation-controls__label";
-  label.textContent = slot.label;
+  label.textContent = slotLabel(slot);
   row.appendChild(label);
 
   const range = document.createElement("wuik-slider");
@@ -92,7 +113,7 @@ function buildSlotRow(
   range.setAttribute("max", String(max));
   range.setAttribute("step", "1");
   range.setAttribute("value", String(startValue));
-  range.setAttribute("label", slot.label);
+  range.setAttribute("label", slotLabel(slot));
   range.dataset.slotKey = slot.key;
   row.appendChild(range);
 

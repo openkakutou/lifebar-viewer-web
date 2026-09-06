@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { initAppI18n } from "../i18n/i18n.ts";
 import { renderLifebarFolderInput } from "./lifebar-folder-input-view.ts";
 
 function makeFile(name: string, contents = "x"): File {
@@ -361,5 +362,65 @@ describe("renderLifebarFolderInput", () => {
 
     expect(status(root).textContent).toBe("");
     expect(root.querySelector('input[type="file"]')).not.toBeNull();
+  });
+
+  describe("localization", () => {
+    afterEach(async () => {
+      const instance = await initAppI18n();
+      await instance.changeLanguage("en");
+      window.localStorage.clear();
+    });
+
+    it("translates the static labels through the active locale's catalog", async () => {
+      const instance = await initAppI18n();
+      await instance.changeLanguage("fr");
+      const root = document.createElement("div");
+
+      renderLifebarFolderInput(root, { onLoaded: vi.fn() });
+
+      expect(root.textContent).toContain(
+        "Sélectionnez un dossier de barre de vie",
+      );
+      expect(root.textContent).toContain(
+        "…ou glissez-déposez un dossier de barre de vie ici",
+      );
+    });
+
+    it("re-renders an already-shown success status message in place when the locale changes", async () => {
+      const instance = await initAppI18n();
+      await instance.changeLanguage("en");
+      const root = document.createElement("div");
+      renderLifebarFolderInput(root, {
+        onLoaded: vi.fn(),
+        fileOptions: {
+          readFileText: async () => "[Files]\nfont1 = font.def",
+        },
+      });
+
+      await selectViaPicker(root, [
+        withRelativePath(makeFile("fight.def"), "pack/fight.def"),
+      ]);
+      expect(status(root).textContent).toContain("1 section recognized");
+
+      await instance.changeLanguage("fr");
+
+      expect(status(root).textContent).toContain("chargé");
+      expect(status(root).textContent).toContain("1 section reconnue(s)");
+    });
+
+    it("translates an error status message end-to-end", async () => {
+      const instance = await initAppI18n();
+      await instance.changeLanguage("fr");
+      const root = document.createElement("div");
+      renderLifebarFolderInput(root, { onLoaded: vi.fn() });
+
+      await selectViaPicker(root, [
+        withRelativePath(makeFile("font.fnt"), "pack/font.fnt"),
+      ]);
+
+      expect(status(root).textContent).toContain(
+        "Aucun fichier de barre de vie au format .def trouvé",
+      );
+    });
   });
 });

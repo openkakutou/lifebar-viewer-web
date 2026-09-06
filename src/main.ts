@@ -1,6 +1,7 @@
 import "@openkakutou/web-ui-kit/tokens.css";
 import "@openkakutou/web-ui-kit";
 import "./style.css";
+import type { WuikLocaleSwitcherElement } from "@openkakutou/web-ui-kit";
 import {
   getLifebarDocument,
   setLifebarDocument,
@@ -10,6 +11,7 @@ import {
   setSffSpriteSheet,
 } from "./document/sff-sprite-sheet-store.ts";
 import { renderElementsPanel } from "./elements/elements-panel.ts";
+import { getI18n, initAppI18n, onLocaleChange, t } from "./i18n/i18n.ts";
 import { renderLifebarFolderInput } from "./input/lifebar-folder-input-view.ts";
 import {
   defaultSimulatedValue,
@@ -18,6 +20,8 @@ import {
 import { renderSimulationControls } from "./simulation/simulation-controls.ts";
 import { appVersion } from "./version.ts";
 
+// The app's own brand name -- a proper noun, deliberately never translated
+// (see .vibe/decisions/007-i18n-integration-approach.md).
 const APP_TITLE = "Lifebar Viewer";
 
 /**
@@ -48,6 +52,14 @@ export interface RenderAppOptions {
   designTokensLoaded?: () => boolean;
 }
 
+// `renderApp` is only ever really invoked once per page (from `mount()`),
+// but tests call it repeatedly on the same or a fresh root -- torn down at
+// the top of every call, before a fresh one is made, so a locale-change
+// subscription from a previous call never accumulates or fires against
+// content no longer on the page. Mirrors `lifebar-editor`'s own
+// replace-not-accumulate handling of a render-owned live subscription.
+let currentUnsubscribeLocaleChange: (() => void) | undefined;
+
 /**
  * Builds the app's root frame — a `web-ui-kit` `<wuik-app-shell>` with the
  * app title (plus version) in the toolbar and the lifebar folder input as
@@ -68,12 +80,17 @@ export function renderApp(
   version: string,
   options: RenderAppOptions = {},
 ): void {
+  currentUnsubscribeLocaleChange?.();
+  currentUnsubscribeLocaleChange = undefined;
   root.replaceChildren();
   document.title = `${APP_TITLE} — v${version}`;
 
   const tokensLoaded = options.designTokensLoaded ?? designTokensLoaded;
   if (!tokensLoaded()) {
     renderDesignTokensError(root);
+    currentUnsubscribeLocaleChange = onLocaleChange(() =>
+      renderDesignTokensError(root),
+    );
     return;
   }
 
@@ -86,6 +103,15 @@ export function renderApp(
   title.className = "app-title";
   title.textContent = `${APP_TITLE} — v${version}`;
   toolbar.appendChild(title);
+
+  const localeSwitcher = document.createElement(
+    "wuik-locale-switcher",
+  ) as unknown as WuikLocaleSwitcherElement;
+  localeSwitcher.className = "locale-switcher";
+  localeSwitcher.setAttribute("label", t("app.languageLabel", "Language"));
+  localeSwitcher.i18n = getI18n();
+  toolbar.appendChild(localeSwitcher);
+
   shell.appendChild(toolbar);
 
   const main = document.createElement("main");
@@ -158,24 +184,50 @@ export function renderApp(
   main.append(simulationSection, elementsSection);
 
   root.appendChild(shell);
+
+  // Live locale switching (backlog item 008): re-renders the elements
+  // panel and simulation controls -- through the same refresh closures
+  // every ordinary data change already uses, so the current element
+  // selection and simulated values survive untouched -- plus the
+  // switcher's own translated accessible label. The folder-input view
+  // handles its own currently-displayed text separately, internally (see
+  // lifebar-folder-input-view.ts).
+  currentUnsubscribeLocaleChange = onLocaleChange(() => {
+    localeSwitcher.setAttribute("label", t("app.languageLabel", "Language"));
+    refreshSimulationControls();
+    refreshElementsPanel();
+  });
 }
 
 /**
  * Deliberately styled with no `web-ui-kit` tokens or custom elements: this
  * renders exactly in the scenario where those failed to load, so it must
- * stay visible without depending on them.
+ * stay visible without depending on them. Re-invoked (replacing its own
+ * previous content) on a locale change, so its text stays live too even
+ * though no `<wuik-locale-switcher>` is available in this degraded state --
+ * the browser-detected/persisted locale still applies via `t()`.
  */
 function renderDesignTokensError(root: HTMLElement): void {
+  root.replaceChildren();
+
   const container = document.createElement("div");
   container.className = "design-tokens-error";
 
   const heading = document.createElement("h1");
-  heading.textContent = `${APP_TITLE} failed to load`;
+  heading.textContent = t(
+    "errors.designTokensFailedHeading",
+    "{{title}} failed to load",
+    {
+      title: APP_TITLE,
+    },
+  );
   container.appendChild(heading);
 
   const body = document.createElement("p");
-  body.textContent =
-    "The design system's tokens stylesheet didn't load. Try reloading the page; if this keeps happening, please report it.";
+  body.textContent = t(
+    "errors.designTokensFailedBody",
+    "The design system's tokens stylesheet didn't load. Try reloading the page; if this keeps happening, please report it.",
+  );
   container.appendChild(body);
 
   root.appendChild(container);
@@ -190,8 +242,16 @@ function renderDesignTokensError(root: HTMLElement): void {
  * `load` event is spec-guaranteed to fire only after every stylesheet
  * referenced at parse time has settled, so waiting for it (a no-op if it
  * has already fired) makes the probe accurate.
+ *
+ * `initAppI18n` is awaited here, before the very first `renderApp` call --
+ * never inside `renderApp` itself, which stays synchronous so tests can
+ * keep calling it directly with deterministic English defaults (see
+ * .vibe/decisions/007-i18n-integration-approach.md). This is also why the
+ * real app never flashes English before a persisted locale resolves: the
+ * first paint already has the right language.
  */
-function mount(): void {
+async function mount(): Promise<void> {
+  await initAppI18n();
   const app = document.querySelector<HTMLDivElement>("#app");
   if (app) {
     renderApp(app, appVersion);
@@ -199,7 +259,7 @@ function mount(): void {
 }
 
 if (document.readyState === "complete") {
-  mount();
+  void mount();
 } else {
-  window.addEventListener("load", mount, { once: true });
+  window.addEventListener("load", () => void mount(), { once: true });
 }

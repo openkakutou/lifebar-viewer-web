@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { initAppI18n } from "../i18n/i18n.ts";
 import type { LifebarDocument } from "../lifebar/document.ts";
 import type { SpritePixelResult } from "../wasm/bridge.ts";
 import type { SpriteGroup } from "../wasm/types.ts";
@@ -391,5 +392,21 @@ describe("renderElementsPanel — simulated values (backlog item 005)", () => {
         .querySelector(".elements-panel__overlay")
         ?.classList.contains("is-selected"),
     ).toBe(true);
+  });
+
+  it("renders its heading and empty-state text through the active locale's catalog", async () => {
+    const instance = await initAppI18n();
+    await instance.changeLanguage("fr");
+    try {
+      const root = document.createElement("div");
+      renderElementsPanel(root, doc([]), null, null);
+
+      expect(root.querySelector("h3")?.textContent).toBe("Éléments (0)");
+      expect(root.querySelector(".elements-panel__empty")?.textContent).toBe(
+        "Cette barre de vie ne contient aucun élément reconnu.",
+      );
+    } finally {
+      await instance.changeLanguage("en");
+    }
   });
 });

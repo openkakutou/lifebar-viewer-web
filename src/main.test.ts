@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resetLifebarDocumentForTests } from "./document/lifebar-document-store.ts";
 import { resetSffSpriteSheetForTests } from "./document/sff-sprite-sheet-store.ts";
+import { initAppI18n } from "./i18n/i18n.ts";
 import { designTokensLoaded, renderApp } from "./main.ts";
 
 function makeFile(name: string, contents = "x"): File {
@@ -138,6 +139,83 @@ describe("renderApp", () => {
     renderApp(root, "0.1.0", { designTokensLoaded: () => true });
 
     expect(root.querySelector(".elements-panel")).toBeNull();
+  });
+
+  it("renders a locale switcher in the toolbar, labelled for accessibility", () => {
+    const root = document.createElement("div");
+
+    renderApp(root, "0.1.0", { designTokensLoaded: () => true });
+
+    const switcher = root.querySelector("wuik-locale-switcher");
+    expect(switcher).not.toBeNull();
+    expect(switcher?.getAttribute("label")).toBe("Language");
+    // Shadow-DOM content never contributes to the host's own light-DOM
+    // textContent, so the toolbar's exact-text assertions above are
+    // unaffected by the switcher living inside it.
+    expect(root.querySelector('[slot="toolbar"]')?.contains(switcher)).toBe(
+      true,
+    );
+  });
+
+  describe("live locale switching", () => {
+    afterEach(async () => {
+      window.localStorage.clear();
+    });
+
+    it("re-renders already-visible translated text and keeps the current element selection and simulated values when the locale changes", async () => {
+      const instance = await initAppI18n();
+      await instance.changeLanguage("en");
+      const root = document.createElement("div");
+      renderApp(root, "0.1.0", { designTokensLoaded: () => true });
+
+      const dropZone = root.querySelector(".lifebar-folder-input__dropzone");
+      if (!dropZone) throw new Error("dropzone not found");
+      const event = new Event("drop", { bubbles: true, cancelable: true });
+      Object.defineProperty(event, "dataTransfer", {
+        value: {
+          items: [
+            {
+              webkitGetAsEntry: () => ({
+                isFile: true,
+                isDirectory: false,
+                fullPath: "/pack/fight.def",
+                file: (success: (file: File) => void) =>
+                  success(
+                    new File(
+                      [
+                        "[P1 Life Bar]\npos = 5, 17\n[P2 Life Bar]\npos = 5, 17\n",
+                      ],
+                      "fight.def",
+                    ),
+                  ),
+              }),
+            },
+          ],
+        },
+      });
+      dropZone.dispatchEvent(event);
+
+      await vi.waitFor(() => {
+        expect(root.querySelectorAll(".elements-panel__item")).toHaveLength(2);
+      });
+      const items = root.querySelectorAll(".elements-panel__item");
+      (items[1] as HTMLButtonElement).click();
+      expect(items[1].getAttribute("aria-pressed")).toBe("true");
+
+      await instance.changeLanguage("fr");
+
+      await vi.waitFor(() => {
+        expect(
+          root.querySelector("wuik-locale-switcher")?.getAttribute("label"),
+        ).toBe("Langue");
+      });
+      // The selection made before the locale switch survived the re-render.
+      const itemsAfter = root.querySelectorAll(".elements-panel__item");
+      expect(itemsAfter[1].getAttribute("aria-pressed")).toBe("true");
+      expect(itemsAfter[0].getAttribute("aria-pressed")).toBe("false");
+
+      await instance.changeLanguage("en");
+    });
   });
 });
 

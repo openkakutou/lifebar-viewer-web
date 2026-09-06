@@ -1,0 +1,51 @@
+{
+  "app": {
+    "languageLabel": "Language"
+  },
+  "errors": {
+    "designTokensFailedHeading": "{{title}} failed to load",
+    "designTokensFailedBody": "The design system's tokens stylesheet didn't load. Try reloading the page; if this keeps happening, please report it."
+  },
+  "elements": {
+    "heading": "Elements ({{count}})",
+    "empty": "This lifebar has no recognized elements.",
+    "unnamed": "(unnamed element)",
+    "noSpriteLayers": "No sprite layers on this element.",
+    "waitingForSheet": "Load a sprite sheet to preview this element's sprites.",
+    "unresolvedSprite": "Sprite reference not found in the loaded sheet: {{refs}}",
+    "waitingMessage": "Waiting for a sprite sheet to preview elements."
+  },
+  "simulation": {
+    "playerHeading": "P{{player}}",
+    "lifeLabel": "P{{player}} — Life",
+    "powerLabel": "P{{player}} — Power",
+    "comboLabel": "Combo"
+  },
+  "input": {
+    "folderLabel": "Select a lifebar folder (containing its .def-style file, e.g. fight.def)",
+    "dropHint": "…or drag and drop a lifebar folder here",
+    "resetButton": "Choose a different folder",
+    "selectionPrompt": "Which file is the lifebar?",
+    "candidateGroupLabel": "Candidate lifebar files",
+    "confirmSelection": "Load selected file",
+    "reading": "Reading…",
+    "sectionWordSingular": "section",
+    "sectionWordPlural": "sections",
+    "groupWordSingular": "group",
+    "groupWordPlural": "groups",
+    "success": "Loaded {{fileName}} — {{count}} {{word}} recognized",
+    "warningsSuffix": ", {{count}} unrecognized {{word}} skipped",
+    "needsSelection": "Found {{count}} possible lifebar files — pick which one to load.",
+    "errorNoFilesDrop": "Couldn't read anything from the dropped folder — your browser may not support folder drag-and-drop here. Try the folder picker button instead.",
+    "errorNoFilesPicker": "This folder is empty — pick a folder that contains the lifebar's .def-style file.",
+    "errorNoCandidate": "No .def-style lifebar file found in this folder — expected one like fight.def.",
+    "errorReadFile": "Could not read {{fileName}}: {{message}}",
+    "errorParseFile": "Could not parse {{fileName}}: {{message}}",
+    "spriteSuccess": "Sprite sheet: {{fileName}} ({{count}} {{word}}).",
+    "spriteNoneFound": "No sprite sheet found in this folder.",
+    "spriteMultipleFound": "Multiple sprite sheets found ({{count}}) — not resolved.",
+    "spriteReadError": "Could not read sprite sheet {{fileName}}: {{message}}.",
+    "spriteSetupError": "The sff WASM build isn't available ({{message}}). Run \"npm run wasm:download -- <version>\" to fetch it.",
+    "spriteParseError": "Could not parse sprite sheet {{fileName}}: {{message}}."
+  }
+}
