@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The version shown in the toolbar now always matches the app's real release version — it's read straight from the source of truth instead of a separately maintained value that could go stale.
+
 ## [0.8.0] - 2026-09-06
 
 ### Added
