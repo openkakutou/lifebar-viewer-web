@@ -1,5 +1,5 @@
 ---
-status: todo
+status: done
 ---
 # Drift-Proof App Version From package.json
 
