@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-09-08
+
 ### Added
 
 - The version shown in the toolbar now always matches the app's real release version — it's read straight from the source of truth instead of a separately maintained value that could go stale.
@@ -65,7 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The app now uses the shared OpenKakutou design system for its layout and styling, with a visible error message shown instead of a blank page if the design assets fail to load.
 
-[Unreleased]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.6.1...v0.7.0
 [0.6.1]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.6.0...v0.6.1
