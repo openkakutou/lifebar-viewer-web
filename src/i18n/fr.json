@@ -13,7 +13,9 @@
     "noSpriteLayers": "Aucun calque de sprite sur cet élément.",
     "waitingForSheet": "Chargez une feuille de sprites pour prévisualiser les sprites de cet élément.",
     "unresolvedSprite": "Référence de sprite introuvable dans la feuille chargée : {{refs}}",
-    "waitingMessage": "En attente d'une feuille de sprites pour prévisualiser les éléments."
+    "waitingMessage": "En attente d'une feuille de sprites pour prévisualiser les éléments.",
+    "malformedMixedPrefixing": "Mélange des entrées préfixées p1./p2. et des entrées non préfixées ; la disposition par joueur ne peut pas être déterminée.",
+    "malformedOneSidedPrefixing": "Seules les entrées d'un joueur (p1. ou p2.) sont présentes ; la disposition par joueur ne peut pas être déterminée."
   },
   "simulation": {
     "playerHeading": "P{{player}}",

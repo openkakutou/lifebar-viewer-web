@@ -41,11 +41,22 @@ export interface ElementLayer {
   spriteRef: { group: number; image: number } | null;
 }
 
+/**
+ * Why a section could not be split into a clean per-player layout -- see
+ * .vibe/decisions/009-shared-section-per-player-split-and-malformed-state.md.
+ * `mixed-prefix`: some entries carry a p1./p2. prefix, others don't.
+ * `one-sided-prefix`: only one player's prefix is present, the other is
+ * entirely missing.
+ */
+export type SectionPrefixIssue = "mixed-prefix" | "one-sided-prefix";
+
 /** One recognized element's computed layout: its anchor point and sprite layers. */
 export interface ElementLayout {
   name: string;
   origin: Point;
   layers: ElementLayer[];
+  /** Set only for a malformed shared section -- see computeSectionElementLayouts. */
+  issue?: SectionPrefixIssue;
 }
 
 const POINT_PATTERN = /^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/;
@@ -92,6 +103,113 @@ export function computeElementLayout(section: LifebarSection): ElementLayout {
   layers.sort((a, b) => a.index - b.index);
 
   return { name: section.name, origin, layers };
+}
+
+type PlayerPrefix = "p1" | "p2";
+
+function hasPlayerPrefix(
+  entry: { key: string },
+  prefix: PlayerPrefix,
+): boolean {
+  return entry.key.trim().toLowerCase().startsWith(`${prefix}.`);
+}
+
+/**
+ * Whether an (unprefixed) key could actually affect a computed layout --
+ * the same `pos`/`N.spr`/`N.offset` set `computeElementLayout` itself reads,
+ * everything else already being silently ignored by it regardless of any
+ * prefix. A real Ikemen GO section legitimately mixes per-player
+ * (`p1.`/`p2.`) data with section-wide, non-positional settings (e.g.
+ * `[Powerbar]`'s `level1.snd`) or with an unrelated third/fourth-player
+ * prefix (`p3.`/`p4.`, real Simul-mode sections) this app doesn't split by
+ * (out of this item's scope) -- neither should demote an otherwise-clean p1./p2.
+ * split to the malformed diagnostic state, since neither can produce a
+ * plausible-but-wrong layout on its own.
+ */
+const LAYOUT_RELEVANT_KEY = /^(pos|\d+\.(?:spr|offset))$/i;
+
+function isLayoutRelevantKey(key: string): boolean {
+  return LAYOUT_RELEVANT_KEY.test(key.trim());
+}
+
+/**
+ * A section's own player-prefixing shape -- see
+ * .vibe/decisions/009-shared-section-per-player-split-and-malformed-state.md.
+ */
+export type SectionPrefixShape =
+  | { kind: "unprefixed" }
+  | { kind: "per-player" }
+  | { kind: SectionPrefixIssue };
+
+/** Classifies a section by whether its entries use a p1./p2. key prefix, and how consistently. */
+export function classifySectionPrefixShape(
+  section: LifebarSection,
+): SectionPrefixShape {
+  const hasP1 = section.entries.some((e) => hasPlayerPrefix(e, "p1"));
+  const hasP2 = section.entries.some((e) => hasPlayerPrefix(e, "p2"));
+  const hasOther = section.entries.some(
+    (e) =>
+      !hasPlayerPrefix(e, "p1") &&
+      !hasPlayerPrefix(e, "p2") &&
+      isLayoutRelevantKey(e.key),
+  );
+
+  if (!hasP1 && !hasP2) return { kind: "unprefixed" };
+  if (hasOther) return { kind: "mixed-prefix" };
+  if (hasP1 && hasP2) return { kind: "per-player" };
+  return { kind: "one-sided-prefix" };
+}
+
+/** Builds a per-player sub-section: only that player's entries, prefix stripped. */
+function subSectionForPlayer(
+  section: LifebarSection,
+  prefix: PlayerPrefix,
+  playerLabel: string,
+): LifebarSection {
+  return {
+    name: `${section.name} (${playerLabel})`,
+    line: section.line,
+    entries: section.entries
+      .filter((e) => hasPlayerPrefix(e, prefix))
+      .map((e) => ({ ...e, key: e.key.trim().slice(prefix.length + 1) })),
+  };
+}
+
+/**
+ * A fixed, neutral, non-guessed placeholder for a section whose player
+ * prefixing is malformed -- deliberately never anchored at a player's own
+ * (possibly present) `pos`, so it can never look like a verified position.
+ * See .vibe/decisions/009.
+ */
+function malformedElementLayout(
+  section: LifebarSection,
+  issue: SectionPrefixIssue,
+): ElementLayout {
+  return { name: section.name, origin: { x: 0, y: 0 }, layers: [], issue };
+}
+
+/**
+ * Computes the one or two elements a section renders as: unchanged for a
+ * classic per-player section, split in two for a clean shared p1./p2.
+ * section, or a single diagnostic placeholder for a malformed one -- see
+ * .vibe/decisions/009-shared-section-per-player-split-and-malformed-state.md.
+ */
+export function computeSectionElementLayouts(
+  section: LifebarSection,
+): ElementLayout[] {
+  const shape = classifySectionPrefixShape(section);
+  switch (shape.kind) {
+    case "unprefixed":
+      return [computeElementLayout(section)];
+    case "per-player":
+      return [
+        computeElementLayout(subSectionForPlayer(section, "p1", "P1")),
+        computeElementLayout(subSectionForPlayer(section, "p2", "P2")),
+      ];
+    case "mixed-prefix":
+    case "one-sided-prefix":
+      return [malformedElementLayout(section, shape.kind)];
+  }
 }
 
 /** A layer's absolute position: the element's origin plus the layer's own offset. */

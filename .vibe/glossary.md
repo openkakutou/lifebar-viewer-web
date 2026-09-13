@@ -6,8 +6,9 @@ The health bar, power bar, combo counter, and round display UI a MUGEN/Ikemen GO
 _Sources: `src/lifebar/document.ts`, `src/lifebar/parse.ts`_
 
 ## Section
-A `[Section Name]` block within a lifebar's `.def`-style file, holding an ordered list of `key = value` entries. This app only builds a typed representation for sections it recognizes (life bar, power bar, face, name, win icons, match wins, round time, combo); any other syntactically valid section is skipped with a warning rather than blocking the load. The elements panel UI calls a Section an "element" (e.g. "Elements (3)") — the same concept, user-facing wording only.
-_Sources: `src/lifebar/document.ts`, `src/lifebar/parse.ts`, `src/lifebar/known-sections.ts`, `src/elements/elements-panel.ts`_
+A `[Section Name]` block within a lifebar's `.def`-style file, holding an ordered list of `key = value` entries. This app only builds a typed representation for sections it recognizes (life bar, power bar, face, name, win icons, match wins, round time, combo); any other syntactically valid section is skipped with a warning rather than blocking the load. The elements panel UI calls each of a Section's rendered elements an "element" (e.g. "Elements (3)") — usually one element per Section, but a modern Ikemen GO Section holding both players' data at once (distinguished only by a `p1.`/`p2.` key prefix on its entries) renders as two elements, one per player.
+**Do not confuse with:** Element — most Sections still produce exactly one, but a shared per-player Section produces two.
+_Sources: `src/lifebar/document.ts`, `src/lifebar/parse.ts`, `src/lifebar/known-sections.ts`, `src/elements/elements-panel.ts`, `src/elements/element-layout.ts`_
 
 ## Sprite layer
 One `N.spr` entry within a Section (`N` a non-negative integer, e.g. `0.spr = 9000, 0`) — a single positioned sprite reference contributing to that element's visual composite, offset from the Section's own anchor point (its `pos` entry) by a matching `N.offset` entry if present. The real MUGEN/Ikemen GO convention for a section's layered background sprites.

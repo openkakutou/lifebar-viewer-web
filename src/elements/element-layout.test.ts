@@ -8,6 +8,7 @@ import {
   clampBoxToCanvas,
   computeElementBox,
   computeElementLayout,
+  computeSectionElementLayouts,
   layerBox,
   layerPosition,
   parsePoint,
@@ -337,5 +338,111 @@ describe("computeElementBox", () => {
       width: PLACEHOLDER_SIZE,
       height: PLACEHOLDER_SIZE,
     });
+  });
+});
+
+describe("computeSectionElementLayouts", () => {
+  it("keeps a section with no p1./p2. prefixed entries as a single unchanged element", () => {
+    const s = section("P1 Life Bar", [
+      { key: "pos", value: "5, 17" },
+      { key: "0.spr", value: "9000, 0" },
+    ]);
+    const result = computeSectionElementLayouts(s);
+    expect(result).toEqual([computeElementLayout(s)]);
+    expect(result[0].issue).toBeUndefined();
+  });
+
+  it("splits a section whose entries are fully p1./p2. prefixed into two per-player elements", () => {
+    const s = section("Lifebar", [
+      { key: "p1.pos", value: "10, 20" },
+      { key: "p1.0.spr", value: "9000, 0" },
+      { key: "p2.pos", value: "500, 20" },
+      { key: "p2.0.spr", value: "9000, 1" },
+    ]);
+    const result = computeSectionElementLayouts(s);
+    expect(result).toHaveLength(2);
+    expect(result[0]).toMatchObject({
+      name: "Lifebar (P1)",
+      origin: { x: 10, y: 20 },
+    });
+    expect(result[0].issue).toBeUndefined();
+    expect(result[0].layers).toHaveLength(1);
+    expect(result[0].layers[0].spriteRef).toEqual({ group: 9000, image: 0 });
+    expect(result[1]).toMatchObject({
+      name: "Lifebar (P2)",
+      origin: { x: 500, y: 20 },
+    });
+    expect(result[1].issue).toBeUndefined();
+    expect(result[1].layers).toHaveLength(1);
+    expect(result[1].layers[0].spriteRef).toEqual({ group: 9000, image: 1 });
+  });
+
+  it("matches p1./p2. prefixes case-insensitively", () => {
+    const s = section("Lifebar", [
+      { key: "P1.pos", value: "1, 1" },
+      { key: "P2.pos", value: "2, 2" },
+    ]);
+    const result = computeSectionElementLayouts(s);
+    expect(result).toHaveLength(2);
+    expect(result[0].origin).toEqual({ x: 1, y: 1 });
+    expect(result[1].origin).toEqual({ x: 2, y: 2 });
+  });
+
+  it("flags a section with only one player's prefix present as a single malformed element, not a guessed layout", () => {
+    const s = section("Powerbar", [
+      { key: "p1.pos", value: "10, 20" },
+      { key: "p1.0.spr", value: "9000, 0" },
+    ]);
+    const result = computeSectionElementLayouts(s);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      name: "Powerbar",
+      origin: { x: 0, y: 0 },
+      layers: [],
+      issue: "one-sided-prefix",
+    });
+  });
+
+  it("flags a section mixing prefixed and unprefixed entries as a single malformed element, not a guessed layout", () => {
+    const s = section("Face", [
+      { key: "p1.pos", value: "10, 20" },
+      { key: "p2.pos", value: "500, 20" },
+      { key: "0.spr", value: "9000, 0" },
+    ]);
+    const result = computeSectionElementLayouts(s);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      name: "Face",
+      origin: { x: 0, y: 0 },
+      layers: [],
+      issue: "mixed-prefix",
+    });
+  });
+
+  it("still splits cleanly when a section-wide, non-positional key has no player prefix (real Ikemen GO data, e.g. Powerbar's level*.snd)", () => {
+    const s = section("Powerbar", [
+      { key: "p1.pos", value: "10, 20" },
+      { key: "p2.pos", value: "500, 20" },
+      { key: "level1.snd", value: "" },
+    ]);
+    const result = computeSectionElementLayouts(s);
+    expect(result).toHaveLength(2);
+    expect(result[0].issue).toBeUndefined();
+    expect(result[0].origin).toEqual({ x: 10, y: 20 });
+    expect(result[1].origin).toEqual({ x: 500, y: 20 });
+  });
+
+  it("still splits cleanly, ignoring an unrelated third/fourth-player prefix out of this item's scope (real Ikemen GO Simul-mode data)", () => {
+    const s = section("Simul Lifebar", [
+      { key: "p1.pos", value: "10, 20" },
+      { key: "p2.pos", value: "500, 20" },
+      { key: "p3.pos", value: "0, 0" },
+      { key: "p4.pos", value: "0, 0" },
+    ]);
+    const result = computeSectionElementLayouts(s);
+    expect(result).toHaveLength(2);
+    expect(result[0].issue).toBeUndefined();
+    expect(result[0].name).toBe("Simul Lifebar (P1)");
+    expect(result[1].name).toBe("Simul Lifebar (P2)");
   });
 });

@@ -324,6 +324,158 @@ describe("renderElementsPanel", () => {
   });
 });
 
+describe("renderElementsPanel — shared per-player sections (backlog item 011)", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("splits a shared p1./p2. section into two selectable list items with independently positioned overlays", () => {
+    const root = document.createElement("div");
+    renderElementsPanel(
+      root,
+      doc([
+        {
+          name: "Lifebar",
+          entries: [
+            { key: "p1.pos", value: "10, 20", line: 1 },
+            { key: "p2.pos", value: "500, 20", line: 2 },
+          ],
+          line: 0,
+        },
+      ]),
+      null,
+      null,
+    );
+    const names = items(root).map((b) => b.textContent);
+    expect(names).toEqual(["Lifebar (P1)", "Lifebar (P2)"]);
+    expect(root.querySelector("h3")?.textContent).toBe("Elements (2)");
+
+    const [p1Overlay, p2Overlay] = overlays(root);
+    expect(p1Overlay.style.left).toBe("10px");
+    expect(p1Overlay.style.top).toBe("20px");
+    expect(p2Overlay.style.left).toBe("500px");
+    expect(p2Overlay.style.top).toBe("20px");
+  });
+
+  it("selecting one split player's list item highlights only its own overlay", () => {
+    const root = document.createElement("div");
+    renderElementsPanel(
+      root,
+      doc([
+        {
+          name: "Lifebar",
+          entries: [
+            { key: "p1.pos", value: "10, 20", line: 1 },
+            { key: "p2.pos", value: "500, 20", line: 2 },
+          ],
+          line: 0,
+        },
+      ]),
+      null,
+      null,
+    );
+    items(root)[1].click();
+    expect(overlays(root)[0].classList.contains("is-selected")).toBe(false);
+    expect(overlays(root)[1].classList.contains("is-selected")).toBe(true);
+  });
+
+  it("keeps a classic per-player section (no p1./p2. prefixes) as a single element, no regression", () => {
+    const root = document.createElement("div");
+    renderElementsPanel(
+      root,
+      doc([
+        {
+          name: "P1 Life Bar",
+          entries: [{ key: "pos", value: "5, 5", line: 1 }],
+          line: 0,
+        },
+      ]),
+      null,
+      null,
+    );
+    expect(items(root)).toHaveLength(1);
+    expect(root.querySelector("h3")?.textContent).toBe("Elements (1)");
+  });
+
+  it("flags a section with only one player's prefix as a single diagnostic element with a distinct overlay and explanatory title", () => {
+    const root = document.createElement("div");
+    renderElementsPanel(
+      root,
+      doc([
+        {
+          name: "Powerbar",
+          entries: [{ key: "p1.pos", value: "10, 20", line: 1 }],
+          line: 0,
+        },
+      ]),
+      null,
+      null,
+    );
+    expect(items(root)).toHaveLength(1);
+    const overlay = overlays(root)[0];
+    expect(
+      overlay.classList.contains("elements-panel__overlay--malformed-prefix"),
+    ).toBe(true);
+    expect(
+      overlay.classList.contains("elements-panel__overlay--unresolved"),
+    ).toBe(false);
+    expect(overlay.title).toMatch(/one player/i);
+  });
+
+  it("flags a section mixing prefixed and unprefixed entries as a single diagnostic element with a distinct overlay and explanatory title", () => {
+    const root = document.createElement("div");
+    renderElementsPanel(
+      root,
+      doc([
+        {
+          name: "Face",
+          entries: [
+            { key: "p1.pos", value: "10, 20", line: 1 },
+            { key: "p2.pos", value: "500, 20", line: 2 },
+            { key: "0.spr", value: "9000, 0", line: 3 },
+          ],
+          line: 0,
+        },
+      ]),
+      spriteGroups(),
+      new Uint8Array(),
+    );
+    expect(items(root)).toHaveLength(1);
+    const overlay = overlays(root)[0];
+    expect(
+      overlay.classList.contains("elements-panel__overlay--malformed-prefix"),
+    ).toBe(true);
+    expect(overlay.title).toMatch(/mix/i);
+  });
+
+  it("keeps simulation slot lookup keyed to the original section, not the flattened element index, when a split section precedes it", () => {
+    const root = document.createElement("div");
+    renderElementsPanel(
+      root,
+      doc([
+        {
+          name: "Lifebar",
+          entries: [
+            { key: "p1.pos", value: "10, 20", line: 1 },
+            { key: "p2.pos", value: "500, 20", line: 2 },
+          ],
+          line: 0,
+        },
+        { name: "P1 Life Bar", entries: [], line: 1 },
+      ]),
+      null,
+      null,
+      { simulatedValues: { "life-1": 60 } },
+    );
+    // 3 list items: Lifebar (P1), Lifebar (P2), P1 Life Bar.
+    expect(items(root)).toHaveLength(3);
+    const fill = root.querySelector<HTMLElement>(
+      ".simulation-overlay__fill-bar",
+    );
+    expect(fill?.style.width).toBe("60%");
+  });
+});
+
 describe("renderElementsPanel — simulated values (backlog item 005)", () => {
   afterEach(() => {
     document.body.innerHTML = "";

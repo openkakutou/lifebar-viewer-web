@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A shared Ikemen GO section that holds both players' data at once (life bar, power bar, face, name, win icons, and their simultaneous/turns/tag mode variants) now shows up in the elements panel as two separate, independently selectable and positioned elements — one per player — instead of a single, mixed-up one. A section whose per-player data is incomplete or inconsistent is shown as a clearly flagged, distinct diagnostic element instead of a guessed or incorrect layout.
+
 ## [0.9.0] - 2026-09-08
 
 ### Added

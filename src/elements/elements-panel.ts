@@ -22,7 +22,7 @@ import {
   PREVIEW_CANVAS_HEIGHT,
   PREVIEW_CANVAS_WIDTH,
   computeElementBox,
-  computeElementLayout,
+  computeSectionElementLayouts,
   layerPosition,
 } from "./element-layout.ts";
 
@@ -104,9 +104,19 @@ export function renderElementsPanel(
   const panel = document.createElement("wuik-panel");
   panel.className = "elements-panel";
 
+  // A shared Ikemen GO section (p1./p2.-prefixed entries) renders as two
+  // elements; a classic per-player section renders as one, unchanged. See
+  // .vibe/decisions/009-shared-section-per-player-split-and-malformed-state.md.
+  const panelElements = document_.sections.flatMap((section, sectionIndex) =>
+    computeSectionElementLayouts(section).map((layout) => ({
+      layout,
+      sectionIndex,
+    })),
+  );
+
   const heading = document.createElement("h3");
   heading.textContent = t("elements.heading", "Elements ({{count}})", {
-    count: String(document_.sections.length),
+    count: String(panelElements.length),
   });
   panel.appendChild(heading);
 
@@ -145,9 +155,7 @@ export function renderElementsPanel(
   canvas.height = PREVIEW_CANVAS_HEIGHT;
   preview.appendChild(canvas);
 
-  const layouts = document_.sections.map((section) =>
-    computeElementLayout(section),
-  );
+  const layouts = panelElements.map((pe) => pe.layout);
   const boxResults = layouts.map((layout) =>
     computeElementBox(layout, spriteGroups),
   );
@@ -175,13 +183,14 @@ export function renderElementsPanel(
     applySelection();
   }
 
-  document_.sections.forEach((section, i) => {
+  panelElements.forEach((pe, i) => {
+    const { layout, sectionIndex } = pe;
     const button = document.createElement("button");
     button.type = "button";
     button.className = "elements-panel__item";
     button.setAttribute("aria-pressed", "false");
     button.textContent =
-      section.name || t("elements.unnamed", "(unnamed element)");
+      layout.name || t("elements.unnamed", "(unnamed element)");
     button.addEventListener("click", () => select(i));
     list.appendChild(button);
     buttons.push(button);
@@ -194,7 +203,19 @@ export function renderElementsPanel(
     overlay.style.width = `${box.width}px`;
     overlay.style.height = `${box.height}px`;
 
-    if (layerResolutions.length === 0) {
+    if (layout.issue) {
+      overlay.classList.add("elements-panel__overlay--malformed-prefix");
+      overlay.title =
+        layout.issue === "mixed-prefix"
+          ? t(
+              "elements.malformedMixedPrefixing",
+              "Mixes p1./p2. prefixed and unprefixed entries; per-player layout can't be determined.",
+            )
+          : t(
+              "elements.malformedOneSidedPrefixing",
+              "Only one player's p1./p2. entries are present; per-player layout can't be determined.",
+            );
+    } else if (layerResolutions.length === 0) {
       overlay.classList.add("elements-panel__overlay--no-sprite");
       overlay.title = t(
         "elements.noSpriteLayers",
@@ -226,7 +247,7 @@ export function renderElementsPanel(
     preview.appendChild(overlay);
     overlays.push(overlay);
 
-    const slot = simulatableSlotsBySectionIndex.get(i);
+    const slot = simulatableSlotsBySectionIndex.get(sectionIndex);
     const value = slot ? simulatedValues[slot.key] : undefined;
     if (slot && value !== undefined) {
       renderSimulationOverlay(preview, box, slot, value);

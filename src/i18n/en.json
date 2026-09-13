@@ -13,7 +13,9 @@
     "noSpriteLayers": "No sprite layers on this element.",
     "waitingForSheet": "Load a sprite sheet to preview this element's sprites.",
     "unresolvedSprite": "Sprite reference not found in the loaded sheet: {{refs}}",
-    "waitingMessage": "Waiting for a sprite sheet to preview elements."
+    "waitingMessage": "Waiting for a sprite sheet to preview elements.",
+    "malformedMixedPrefixing": "Mixes p1./p2. prefixed and unprefixed entries; per-player layout can't be determined.",
+    "malformedOneSidedPrefixing": "Only one player's p1./p2. entries are present; per-player layout can't be determined."
   },
   "simulation": {
     "playerHeading": "P{{player}}",

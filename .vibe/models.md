@@ -67,7 +67,11 @@ Defined in: `src/input/sprite-sheet-folder-input.ts`
 Defined in: `src/document/sff-sprite-sheet-store.ts`
 
 ## ElementLayout / ElementLayer / Point / Box
-A recognized section's computed layout, read from its own raw entries. `ElementLayout` is `{name, origin: Point, layers: ElementLayer[]}`. `ElementLayer` is `{index, offset: Point, spriteRef: {group, image} | null}` (`spriteRef` null when its `N.spr` value is malformed). `Point` is `{x, y}`; `Box` is `{x, y, width, height}`.
+A recognized section's computed layout, read from its own raw entries. `ElementLayout` is `{name, origin: Point, layers: ElementLayer[], issue?: SectionPrefixIssue}` (`issue` set only for a malformed shared-section split — see `SectionPrefixShape` below). `ElementLayer` is `{index, offset: Point, spriteRef: {group, image} | null}` (`spriteRef` null when its `N.spr` value is malformed). `Point` is `{x, y}`; `Box` is `{x, y, width, height}`.
+Defined in: `src/elements/element-layout.ts`
+
+## SectionPrefixShape / SectionPrefixIssue
+A section's player-prefixing shape, computed by `classifySectionPrefixShape`: `{kind: "unprefixed"} | {kind: "per-player"} | {kind: "mixed-prefix"} | {kind: "one-sided-prefix"}`. `SectionPrefixIssue` is the narrower `"mixed-prefix" | "one-sided-prefix"` union `ElementLayout.issue` uses. `computeSectionElementLayouts(section)` turns this classification into one `ElementLayout` (`unprefixed` or malformed) or two (`per-player`) — see `.vibe/decisions/009-shared-section-per-player-split-and-malformed-state.md`.
 Defined in: `src/elements/element-layout.ts`
 
 ## LayerResolution / ElementBoxResult

@@ -94,6 +94,10 @@ that only cares about layout/positioning (not drawing) also stubs
 WASM bridge as an unintended side effect just because it happened to pass
 a non-`null` sprite sheet.
 
+## Shared per-player sections are tested for both the clean split and the malformed-diagnostic degrade path
+
+`element-layout.test.ts`'s `computeSectionElementLayouts` tests cover: a classic section with no `p1.`/`p2.` prefix staying a single unchanged element (no regression); a fully `p1.`/`p2.`-prefixed section splitting into two, each computed only from its own player's entries; case-insensitive prefix matching; a section with only one player's prefix, and a section mixing prefixed and unprefixed layout-relevant entries, both becoming a single malformed element rather than a guessed layout; and — pinned directly against real Ikemen GO data shapes — a section-wide non-positional key alongside `p1.`/`p2.` entries (`[Powerbar]`'s `level*.snd`) and an unrelated third/fourth-player prefix (Simul-mode sections) both still splitting cleanly, since neither can produce a plausible-but-wrong layout on its own. `elements-panel.test.ts` covers the same shapes end to end: the flattened list/overlay count and positions for a split section, independent selection per split element, the distinct `malformed-prefix` overlay style and title for each malformed sub-case, and that a simulated value's slot lookup still targets the right section when a split section precedes it in the list.
+
 ## Simulation controls and overlay are tested as pure logic plus DOM assertions
 
 `src/simulation/simulated-values.test.ts` exercises `detectSimulatableSlots`,
@@ -152,6 +156,8 @@ input clamps both the input and the overlay to the range maximum; clearing
 the field clamps to the range minimum instead of showing a broken state;
 and moving the combo slider shows a numeric badge (not a fill bar) with
 the matching value — with zero console errors throughout.
+
+The per-player section split got the same treatment against the real "VHD" Ikemen GO pack (dev server + a scripted Playwright session): loading its `fight.def` shows all 26 recognized elements, with every `[Lifebar]`/`[Simul Lifebar]`/`[Turns Lifebar]`/`[Powerbar]`/`[Face]`/`[Simul Face]`/`[Turns Face]`/`[Name]`/`[Simul Name]`/`[Turns Name]`/`[WinIcon]` section split into its own "(P1)"/"(P2)" pair, each independently selectable with only its own overlay highlighted, while `[Files]`/`[Time]`/`[Combo]`/`[Round]` stay single elements exactly as before; a synthetic fixture with a mixed-prefix section and a one-sided-prefix section confirmed both degrade to the distinct `malformed-prefix` overlay and explanatory title without crashing or blocking the rest of the lifebar from loading — with zero console errors throughout.
 
 Localization got the same treatment against a real headless Chromium (dev
 server + a scripted Playwright session, browser locale pinned to `en-US`

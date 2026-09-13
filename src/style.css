@@ -167,6 +167,18 @@
   border: 1px dashed var(--wuik-color-danger);
 }
 
+/*
+ * A section whose p1./p2. player-prefixing is malformed (mixed with
+ * unprefixed entries, or only one player present) -- a structural error
+ * distinct in kind from --unresolved (one bad sprite reference against an
+ * otherwise fine layout), so it gets a solid double-line border rather than
+ * --unresolved's single dashed one, while staying in the same danger hue.
+ * See .vibe/decisions/009-shared-section-per-player-split-and-malformed-state.md.
+ */
+.elements-panel__overlay--malformed-prefix {
+  border: 4px double var(--wuik-color-danger);
+}
+
 .elements-panel__overlay.is-selected {
   border: 2px solid var(--wuik-color-accent);
 }
