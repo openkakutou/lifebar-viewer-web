@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-13
+
 ### Added
 
 - A shared Ikemen GO section that holds both players' data at once (life bar, power bar, face, name, win icons, and their simultaneous/turns/tag mode variants) now shows up in the elements panel as two separate, independently selectable and positioned elements — one per player — instead of a single, mixed-up one. A section whose per-player data is incomplete or inconsistent is shown as a clearly flagged, distinct diagnostic element instead of a guessed or incorrect layout.
@@ -71,7 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The app now uses the shared OpenKakutou design system for its layout and styling, with a visible error message shown instead of a blank page if the design assets fail to load.
 
-[Unreleased]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.6.1...v0.7.0
