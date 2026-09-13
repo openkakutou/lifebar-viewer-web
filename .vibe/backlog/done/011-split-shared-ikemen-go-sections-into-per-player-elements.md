@@ -1,5 +1,5 @@
 ---
-status: todo
+status: done
 depends_on: [010]
 ---
 # Split Shared Ikemen GO Sections Into Per-Player Elements
