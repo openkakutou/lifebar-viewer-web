@@ -1,0 +1,43 @@
+; Purpose-authored fixture for the visual-regression suite
+; (tests/visual/lifebar-preview.visual.spec.ts) -- not a real community pack.
+; Lives in a real folder (lifebar-pack/) alongside v1-basic.sff, a byte-for-
+; byte copy of the project's existing real sprite sheet fixture
+; (src/wasm/testdata/v1-basic.sff, one real decoded sprite: group 0, image
+; 0, 57x103px) -- copied in, rather than referenced, so Playwright's
+; directory-upload API (required by the real <input webkitdirectory> picker)
+; can upload the whole pack folder as one real folder selection. This
+; exercises the real parse -> layout -> WASM decode -> canvas draw pipeline
+; end to end. See
+; .vibe/decisions/010-visual-regression-fixture-uses-real-sprite-decode.md.
+;
+; Classic MUGEN section names are used directly (no p1./p2. shared-section
+; split) to keep the fixture's element count and simulatable slots simple
+; and predictable for the spec.
+
+[Files]
+sff = v1-basic.sff
+
+[P1 Life Bar]
+pos = 20,20
+0.spr = 0,0
+0.offset = 0,0
+
+[P2 Life Bar]
+pos = 460,20
+0.spr = 0,0
+0.offset = 0,0
+
+[P1 Power Bar]
+pos = 20,140
+0.spr = 0,0
+0.offset = 0,0
+
+[P2 Power Bar]
+pos = 460,140
+0.spr = 0,0
+0.offset = 0,0
+
+; Deliberately no sprite layer -- exercises the "no sprite layers on this
+; element" placeholder state alongside the resolved-sprite elements above.
+[Combo]
+pos = 280,350

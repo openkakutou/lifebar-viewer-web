@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A visual-regression test suite now catches accidental changes to how a lifebar's composite preview renders — its sprite layout and the life/power/combo diagnostic overlays — checked automatically via `npm run test:visual`, in its own CI check separate from the regular test suite.
+
 ## [0.10.0] - 2026-09-13
 
 ### Added
