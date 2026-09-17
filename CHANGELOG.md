@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-09-17
+
 ### Added
 
 - A visual-regression test suite now catches accidental changes to how a lifebar's composite preview renders — its sprite layout and the life/power/combo diagnostic overlays — checked automatically via `npm run test:visual`, in its own CI check separate from the regular test suite.
@@ -78,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The app now uses the shared OpenKakutou design system for its layout and styling, with a visible error message shown instead of a blank page if the design assets fail to load.
 
 [Unreleased]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.10.0...HEAD
+[0.11.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/openkakutou/lifebar-viewer-web/compare/v0.7.0...v0.8.0

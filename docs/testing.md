@@ -121,6 +121,47 @@ selection overlay stay independently present on the same element.
 
 `simulation-controls.ts`'s slider is `web-ui-kit`'s `<wuik-slider>` (org-wide UX audit, backlog item `012`). Its unit test file never imports `@openkakutou/web-ui-kit`, so the real component class isn't registered under jsdom in that file — the same reason `elements-panel.test.ts` never sees real `<wuik-panel>` behavior either. `simulation-controls.test.ts` therefore asserts against the element's `min`/`max`/`value` **attributes** (not the native `<input>` IDL properties this component doesn't expose) and drives it by dispatching the component's own documented `wuik-input` custom event directly, rather than a native `"input"` event — real slider behavior (dragging, keyboard operability) is confirmed once with a real-browser Playwright pass instead, the same split the rest of this file documents for every other component.
 
+## Visual regression: real Playwright screenshots, checked in CI
+
+`npm test` (Vitest) never looks at a rendered pixel. `npm run test:visual`
+(`playwright.config.ts`, specs under `tests/visual/`) is a separate suite
+that does, covering the elements panel's live composite preview — the
+regression class no unit test, WASM-bridge test, or corpus scan can catch,
+per the org-wide rationale in roadmap's
+`.vibe/decisions/024-visual-regression-testing-via-playwright-screenshots.md`.
+
+- Extends `web-ui-kit`'s shared Playwright preset
+  (`@openkakutou/web-ui-kit/testing/visual-preset`): fixed viewport, forced
+  animations/fonts settled, the shared diff threshold.
+- The fixture (`tests/visual/fixtures/lifebar-pack/`) pairs a small,
+  purpose-authored `.def` with a byte-for-byte copy of the project's
+  existing real `v1-basic.sff` fixture, so the suite drives the real
+  parse → layout → WASM decode → canvas draw pipeline instead of mocking
+  any of it — see `.vibe/decisions/010-visual-regression-fixture-uses-real-sprite-decode.md`
+  for why a full real community pack wasn't vendored instead.
+- The app is served via the plain `vite` dev server (`webServer` in
+  `playwright.config.ts`), not a build + `vite preview` — see
+  `.vibe/decisions/011-visual-regression-served-via-vite-dev-not-build-preview.md`.
+- Two baselines: the composite preview at rest (default simulated values),
+  and again after driving life/power/combo simulation to specific
+  non-default values so each kind's diagnostic overlay is captured too.
+  Each spec waits for the canvas to actually contain decoded, non-transparent
+  pixels before screenshotting — the sprite decode-and-draw is otherwise not
+  observable from the DOM alone.
+- Runs in CI (`.github/workflows/deploy-pages.yml`) as its own `visual`
+  job, separate from the fast `build` job's `Test`/`Lint`/`Build` steps, so
+  Playwright's Chromium download/cache never slows that feedback loop.
+  `deploy` only runs once both `build` and `visual` pass — a real
+  compositing regression blocks publishing the same way a failing unit
+  test already does.
+- A failing diff uploads `test-results/` (actual/expected/diff images) as
+  a CI artifact. Updating a baseline is always its own deliberate
+  `--update-snapshots` commit, reviewed like any other change.
+
+```sh
+npm run test:visual
+```
+
 ## Beyond the test suite: real-browser verification
 
 Passing tests are not treated as proof the folder input works. It was
