@@ -29,7 +29,7 @@
  * Lifebar folder input (backlog item 002) — folder selection is the only
  * input path, see
  * .vibe/decisions/002-folder-only-input-and-warn-on-unrecognized-sections.md.
- * Error text uses `--wuik-color-text`, not `--wuik-color-danger` — mirrors
+ * Error text uses `--wuik-color-text`, not `--wuik-color-error` — mirrors
  * the org-wide convention (`web-ui-kit`'s own
  * .vibe/decisions/009-error-text-uses-text-token-not-danger.md); the
  * invalid state still signals non-verbally via a danger-colored border.
@@ -52,7 +52,7 @@
 }
 
 .lifebar-folder-input__dropzone--dragging {
-  border-color: var(--wuik-color-accent);
+  border-color: var(--wuik-color-primary);
   background-color: var(--wuik-color-surface);
 }
 
@@ -67,7 +67,7 @@
 .lifebar-folder-input__hint {
   margin: 0;
   font-size: var(--wuik-font-size-sm);
-  color: var(--wuik-color-text-secondary);
+  color: var(--wuik-color-text-muted);
 }
 
 .lifebar-folder-input__selection {
@@ -80,13 +80,13 @@
 .lifebar-folder-input__status {
   min-height: 1.2em;
   font-size: var(--wuik-font-size-sm);
-  color: var(--wuik-color-text-secondary);
+  color: var(--wuik-color-text-muted);
 }
 
 .lifebar-folder-input__status--error {
   padding-left: var(--wuik-space-2);
   color: var(--wuik-color-text);
-  border-left: 3px solid var(--wuik-color-danger);
+  border-left: 3px solid var(--wuik-color-error);
 }
 
 .lifebar-folder-input__reset {
@@ -104,7 +104,7 @@
 }
 
 .elements-panel__empty {
-  color: var(--wuik-color-text-secondary);
+  color: var(--wuik-color-text-muted);
 }
 
 .elements-panel__body {
@@ -132,7 +132,7 @@
 }
 
 .elements-panel__item.is-selected {
-  border-color: var(--wuik-color-accent);
+  border-color: var(--wuik-color-primary);
   background-color: var(--wuik-color-surface);
 }
 
@@ -160,11 +160,11 @@
 }
 
 .elements-panel__overlay--waiting {
-  border: 1px dashed var(--wuik-color-text-secondary);
+  border: 1px dashed var(--wuik-color-text-muted);
 }
 
 .elements-panel__overlay--unresolved {
-  border: 1px dashed var(--wuik-color-danger);
+  border: 1px dashed var(--wuik-color-error);
 }
 
 /*
@@ -176,11 +176,11 @@
  * See .vibe/decisions/009-shared-section-per-player-split-and-malformed-state.md.
  */
 .elements-panel__overlay--malformed-prefix {
-  border: 4px double var(--wuik-color-danger);
+  border: 4px double var(--wuik-color-error);
 }
 
 .elements-panel__overlay.is-selected {
-  border: 2px solid var(--wuik-color-accent);
+  border: 2px solid var(--wuik-color-primary);
 }
 
 /*
@@ -196,7 +196,7 @@
   margin: 0;
   padding: var(--wuik-space-2) var(--wuik-space-3);
   text-align: center;
-  color: var(--wuik-color-text-secondary);
+  color: var(--wuik-color-text-muted);
   background-color: var(--wuik-color-surface);
   border-bottom: 1px solid var(--wuik-color-border);
   pointer-events: none;
@@ -204,8 +204,8 @@
 
 /*
  * Live value simulation (backlog item 005). The simulated-value overlay
- * deliberately never reuses `--wuik-color-accent` (selection) or
- * `--wuik-color-danger` (unresolved reference) -- `--wuik-color-warning`
+ * deliberately never reuses `--wuik-color-primary` (selection) or
+ * `--wuik-color-error` (unresolved reference) -- `--wuik-color-warning`
  * plus a diagonal-stripe pattern is the cue, so it reads as "diagnostic
  * overlay" regardless of what hue the sprite underneath happens to be, and
  * survives being visible at the same time as a selection highlight. See
@@ -228,7 +228,7 @@
 .simulation-controls__group h4 {
   margin: 0;
   font-size: var(--wuik-font-size-sm);
-  color: var(--wuik-color-text-secondary);
+  color: var(--wuik-color-text-muted);
 }
 
 .simulation-controls__row {
