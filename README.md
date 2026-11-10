@@ -35,7 +35,7 @@ npm update
 Download a specific version of the `sff` library's WebAssembly build (needed to decode a lifebar's sprite sheet):
 
 ```sh
-npm run wasm:download -- v0.3.1
+npm run wasm:download -- v0.4.0
 ```
 <!-- vibe:end:install -->
 
